@@ -7,7 +7,9 @@ import ForecastSection from '@/components/ForecastSection';
 import MonthlyForecast from '@/components/MonthlyForecast';
 import AgriculturalForecast from '@/components/AgriculturalForecast';
 import FloodRiskSystem from '@/components/FloodRiskSystem';
+import QuantumWeatherSimulator from '@/components/QuantumWeatherSimulator';
 import QuantumBadge from '@/components/QuantumBadge';
+import WeatherAssistant from '@/components/WeatherAssistant';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GOVERNORATES } from '@/data/weatherData';
 import { Governorate } from '@/types/weather';
@@ -57,12 +59,13 @@ const Index = () => {
 
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8" dir="rtl">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 gap-1">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 gap-1">
             <TabsTrigger value="overview">🗺️ نظرة عامة</TabsTrigger>
             <TabsTrigger value="forecast">📅 التنبؤات</TabsTrigger>
             <TabsTrigger value="monthly">📊 شهري</TabsTrigger>
             <TabsTrigger value="agriculture">🌱 الزراعة</TabsTrigger>
             <TabsTrigger value="floods">🌊 السيول</TabsTrigger>
+            <TabsTrigger value="quantum">⚛️ الكوانتوم</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -114,6 +117,11 @@ const Index = () => {
               dailyData={data?.daily || []}
             />
           </TabsContent>
+
+          {/* Quantum Tab */}
+          <TabsContent value="quantum" className="mt-6">
+            <QuantumWeatherSimulator />
+          </TabsContent>
         </Tabs>
 
         {/* Footer */}
@@ -137,6 +145,12 @@ const Index = () => {
           </p>
         </footer>
       </main>
+
+      {/* AI Weather Assistant */}
+      <WeatherAssistant 
+        weatherContext={data?.weather}
+        governorateName={selectedGovernorate.nameAr}
+      />
     </div>
   );
 };
