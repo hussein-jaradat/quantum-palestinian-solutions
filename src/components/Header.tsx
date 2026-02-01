@@ -1,15 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Menu, X, Moon, Sun, Bell, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import Logo from './Logo';
+import SettingsPanel from './SettingsPanel';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
+  useEffect(() => {
+    // Check for saved theme preference or system preference
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
     document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme', !isDarkMode ? 'dark' : 'light');
   };
 
   const navItems = [
@@ -58,9 +72,16 @@ const Header = () => {
               </span>
             </Button>
 
-            <Button variant="ghost" size="icon" className="rounded-full hidden md:flex">
-              <Settings size={20} />
-            </Button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full hidden md:flex">
+                  <Settings size={20} />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0" align="end">
+                <SettingsPanel />
+              </PopoverContent>
+            </Popover>
 
             {/* Mobile Menu Toggle */}
             <Button
