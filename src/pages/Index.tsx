@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Header from '@/components/Header';
 import CurrentWeatherCard from '@/components/CurrentWeatherCard';
 import PalestineMap from '@/components/PalestineMap';
+import InteractiveMap from '@/components/InteractiveMap';
 import WeatherAlerts from '@/components/WeatherAlerts';
 import ForecastSection from '@/components/ForecastSection';
 import WeeklyForecastDetailed from '@/components/WeeklyForecastDetailed';
@@ -165,8 +166,15 @@ const Index = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="mt-6">
+          {/* Overview Tab - Interactive Map */}
+          <TabsContent value="overview" className="mt-6 space-y-6">
+            {/* Interactive Leaflet Map */}
+            <InteractiveMap 
+              onGovernorateSelect={handleGovernorateSelect}
+              selectedGovernorateId={selectedGovernorate.id}
+            />
+            
+            {/* Weather Alerts & Simple Map Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
                 <PalestineMap 
