@@ -4,6 +4,7 @@ import CurrentWeatherCard from '@/components/CurrentWeatherCard';
 import PalestineMap from '@/components/PalestineMap';
 import WeatherAlerts from '@/components/WeatherAlerts';
 import ForecastSection from '@/components/ForecastSection';
+import WeeklyForecastDetailed from '@/components/WeeklyForecastDetailed';
 import MonthlyForecast from '@/components/MonthlyForecast';
 import AgriculturalForecast from '@/components/AgriculturalForecast';
 import FloodRiskSystem from '@/components/FloodRiskSystem';
@@ -16,11 +17,14 @@ import FarmerDashboard from '@/components/FarmerDashboard';
 import InstitutionDashboard from '@/components/InstitutionDashboard';
 import ReliefDashboard from '@/components/ReliefDashboard';
 import AIAnalysisDashboard from '@/components/AIAnalysisDashboard';
+import GovernorateSelector from '@/components/GovernorateSelector';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { GOVERNORATES } from '@/data/weatherData';
 import { Governorate, UserType } from '@/types/weather';
 import { useGovernorateWeather, useAllGovernoratesWeather } from '@/hooks/useWeather';
+import { Atom, Brain, Satellite, Shield, Zap, Globe, Activity } from 'lucide-react';
 
 const Index = () => {
   const defaultGovernorate = GOVERNORATES.find((g) => g.id === 'ramallah')!;
@@ -35,35 +39,79 @@ const Index = () => {
     setSelectedGovernorate(governorate);
   };
 
+  const handleNavigate = (section: string) => {
+    setActiveTab(section);
+  };
+
   return (
     <div className="min-h-screen bg-background" dir="rtl">
-      <Header />
+      <Header activeSection={activeTab} onNavigate={handleNavigate} />
       
       {/* Main Content */}
       <main className="container mx-auto px-4 pt-20 pb-8">
         {/* Hero Section */}
         <section className="mb-8">
-          <div className="text-center mb-6">
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
-              🇵🇸 الأرصاد الجوية الفلسطينية
-            </h1>
-            <p className="text-muted-foreground text-lg">
-              أول نظام أرصاد ذكي يجمع بين الحوسبة الكمية والذكاء الاصطناعي
-            </p>
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-background to-accent/10 border border-border/50 p-8 md:p-12">
+            {/* Background decorations */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent/5 rounded-full blur-3xl" />
+            
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-4">
+                <Badge variant="outline" className="gap-1.5 px-3 py-1">
+                  <Activity size={12} className="text-primary" />
+                  <span>Live</span>
+                </Badge>
+                <Badge variant="secondary" className="gap-1.5 px-3 py-1">
+                  <Atom size={12} />
+                  <span>Quantum-Enhanced</span>
+                </Badge>
+              </div>
+              
+              <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-3 tracking-tight">
+                QANWP
+              </h1>
+              <p className="text-lg md:text-xl text-primary font-medium mb-2">
+                Quantum-Augmented Numerical Weather Prediction
+              </p>
+              <p className="text-muted-foreground text-sm md:text-base max-w-2xl">
+                نظام التنبؤ العددي المعزز بالحوسبة الكمية مع تجميع نماذج الذكاء الاصطناعي المتعددة لفلسطين
+              </p>
+              
+              {/* Feature Pills */}
+              <div className="flex flex-wrap gap-2 mt-6">
+                <div className="flex items-center gap-1.5 bg-card/80 backdrop-blur px-3 py-1.5 rounded-full border border-border/50 text-sm">
+                  <Brain size={14} className="text-primary" />
+                  <span>Multi-Model AI Ensemble</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-card/80 backdrop-blur px-3 py-1.5 rounded-full border border-border/50 text-sm">
+                  <Atom size={14} className="text-accent" />
+                  <span>IBM Qiskit</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-card/80 backdrop-blur px-3 py-1.5 rounded-full border border-border/50 text-sm">
+                  <Satellite size={14} className="text-weather-rainy" />
+                  <span>Sentinel-2 & NASA EOSDIS</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-card/80 backdrop-blur px-3 py-1.5 rounded-full border border-border/50 text-sm">
+                  <Shield size={14} className="text-alert-safe" />
+                  <span>SDG 11 & 13</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Quantum Badge */}
+            <div className="mt-6">
+              <QuantumBadge />
+            </div>
           </div>
-          
-          {/* Quantum Badge */}
-          <QuantumBadge />
         </section>
 
-        {/* User Type Selector */}
-        <section className="mb-8">
-          <Card className="glass-effect">
-            <CardContent className="p-6">
-              <h2 className="text-lg font-bold mb-4 text-center">اختر نوع حسابك للحصول على تجربة مخصصة</h2>
-              <UserTypeSelector selectedType={userType} onTypeChange={setUserType} />
-            </CardContent>
-          </Card>
+        {/* Governorate Selector */}
+        <section className="mb-6">
+          <GovernorateSelector 
+            selectedGovernorate={selectedGovernorate}
+            onSelect={handleGovernorateSelect}
+          />
         </section>
 
         {/* Current Weather */}
@@ -75,17 +123,46 @@ const Index = () => {
           />
         </section>
 
+        {/* User Type Selector */}
+        <section className="mb-8">
+          <Card className="border-border/50 shadow-lg">
+            <CardContent className="p-6">
+              <h2 className="text-lg font-bold mb-4 text-center flex items-center justify-center gap-2">
+                <Zap size={18} className="text-primary" />
+                اختر نوع حسابك للحصول على تجربة مخصصة
+              </h2>
+              <UserTypeSelector selectedType={userType} onTypeChange={setUserType} />
+            </CardContent>
+          </Card>
+        </section>
+
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8" dir="rtl">
-          <TabsList className="grid w-full grid-cols-4 md:grid-cols-8 gap-1">
-            <TabsTrigger value="overview">🗺️ الخريطة</TabsTrigger>
-            <TabsTrigger value="dashboard">📊 لوحتي</TabsTrigger>
-            <TabsTrigger value="ai">🧠 AI تحليل</TabsTrigger>
-            <TabsTrigger value="forecast">📅 التنبؤات</TabsTrigger>
-            <TabsTrigger value="monthly">📈 شهري</TabsTrigger>
-            <TabsTrigger value="agriculture">🌱 الزراعة</TabsTrigger>
-            <TabsTrigger value="floods">🌊 السيول</TabsTrigger>
-            <TabsTrigger value="quantum">⚛️ الكوانتوم</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 md:grid-cols-8 gap-1 h-auto p-1 bg-muted/50">
+            <TabsTrigger value="overview" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
+              <span className="hidden md:inline">🗺️ </span>الخريطة
+            </TabsTrigger>
+            <TabsTrigger value="dashboard" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
+              <span className="hidden md:inline">📊 </span>لوحتي
+            </TabsTrigger>
+            <TabsTrigger value="ai" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
+              <span className="hidden md:inline">🧠 </span>AI
+            </TabsTrigger>
+            <TabsTrigger value="forecast" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
+              <span className="hidden md:inline">📅 </span>أسبوعي
+            </TabsTrigger>
+            <TabsTrigger value="monthly" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
+              <span className="hidden md:inline">📈 </span>شهري
+            </TabsTrigger>
+            <TabsTrigger value="agriculture" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
+              <span className="hidden md:inline">🌱 </span>الزراعة
+            </TabsTrigger>
+            <TabsTrigger value="floods" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
+              <span className="hidden md:inline">🌊 </span>السيول
+            </TabsTrigger>
+            <TabsTrigger value="quantum" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
+              <span className="hidden md:inline">⚛️ </span>كوانتوم
+            </TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -147,12 +224,11 @@ const Index = () => {
             />
           </TabsContent>
 
-          {/* Forecast Tab */}
+          {/* Forecast Tab - Weekly Detailed */}
           <TabsContent value="forecast" className="mt-6">
-            <ForecastSection 
-              hourlyData={data?.hourly || []} 
+            <WeeklyForecastDetailed 
               dailyData={data?.daily || []}
-              isLoading={isLoading}
+              governorateName={selectedGovernorate.nameAr}
             />
           </TabsContent>
 
@@ -189,24 +265,65 @@ const Index = () => {
         </Tabs>
 
         {/* Footer */}
-        <footer className="text-center py-8 border-t border-border">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <span className="text-2xl">🇵🇸</span>
-            <span className="font-bold text-lg text-gradient-palestine">PalWeather</span>
+        <footer className="mt-12 pt-8 border-t border-border">
+          <div className="grid md:grid-cols-3 gap-8 mb-8">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="bg-primary/10 p-2 rounded-lg">
+                  <Atom size={20} className="text-primary" />
+                </div>
+                <span className="font-bold text-lg">QANWP</span>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                نظام التنبؤ العددي المعزز بالحوسبة الكمية - أول منصة أرصاد ذكية في فلسطين تجمع بين الحوسبة الكمية والذكاء الاصطناعي.
+              </p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold mb-3">التقنيات المستخدمة</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-center gap-2">
+                  <span className="text-primary">•</span>
+                  IBM Qiskit - VQE, QAOA, QNN
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-primary">•</span>
+                  Google Gemini AI Models
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-primary">•</span>
+                  Open-Meteo Weather API
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-primary">•</span>
+                  NASA EOSDIS & Copernicus
+                </li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold mb-3">أهداف التنمية المستدامة</h3>
+              <div className="flex gap-3">
+                <div className="bg-primary/10 rounded-lg p-3 text-center">
+                  <Globe size={20} className="mx-auto mb-1 text-primary" />
+                  <span className="text-xs">SDG 11</span>
+                </div>
+                <div className="bg-accent/10 rounded-lg p-3 text-center">
+                  <Shield size={20} className="mx-auto mb-1 text-accent" />
+                  <span className="text-xs">SDG 13</span>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-3">
+                NYUAD Hackathon for Social Good
+              </p>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground">
-            نظام الأرصاد الجوية الفلسطيني الذكي - مدعوم بتقنية IBM Qiskit والذكاء الاصطناعي
-          </p>
-          <div className="flex justify-center gap-4 mt-4 text-xs text-muted-foreground">
-            <span>📡 بيانات Open-Meteo</span>
-            <span>•</span>
-            <span>🔬 IBM Quantum</span>
-            <span>•</span>
-            <span>🤖 AI Predictions</span>
+          
+          <div className="text-center py-4 border-t border-border/50">
+            <p className="text-sm text-muted-foreground">
+              🇵🇸 جميع الحقوق محفوظة © {new Date().getFullYear()} QANWP - فلسطين
+            </p>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            جميع الحقوق محفوظة © {new Date().getFullYear()}
-          </p>
         </footer>
       </main>
 
