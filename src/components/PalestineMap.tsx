@@ -1,24 +1,21 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { GOVERNORATES, generateMockWeatherData, getWeatherIcon } from '@/data/weatherData';
+import { Skeleton } from '@/components/ui/skeleton';
+import { GOVERNORATES, getWeatherIcon } from '@/data/weatherData';
 import { Governorate, WeatherData } from '@/types/weather';
+import { useAllGovernoratesWeather } from '@/hooks/useWeather';
+import { RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface PalestineMapProps {
-  onGovernorateSelect: (governorate: Governorate, weather: WeatherData) => void;
+  onGovernorateSelect: (governorate: Governorate) => void;
   selectedGovernorateId?: string;
 }
 
 const PalestineMap = ({ onGovernorateSelect, selectedGovernorateId }: PalestineMapProps) => {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-
-  const weatherByGovernorate = useMemo(() => {
-    const data: Record<string, WeatherData> = {};
-    GOVERNORATES.forEach((gov) => {
-      data[gov.id] = generateMockWeatherData(gov.id);
-    });
-    return data;
-  }, []);
+  const { data: weatherData, isLoading, isError, refetch, isFetching } = useAllGovernoratesWeather();
 
   const regions = {
     north: GOVERNORATES.filter((g) => g.region === 'north'),
@@ -34,14 +31,78 @@ const PalestineMap = ({ onGovernorateSelect, selectedGovernorateId }: PalestineM
     gaza: { ar: 'قطاع غزة', color: 'bg-weather-rainy/20 border-weather-rainy' },
   };
 
+  const renderGovernorateCard = (gov: Governorate) => {
+    const weather = weatherData?.[gov.id];
+    const isSelected = selectedGovernorateId === gov.id;
+    const isHovered = hoveredId === gov.id;
+
+    if (isLoading) {
+      return (
+        <div key={gov.id} className="p-3 rounded-xl border bg-card">
+          <Skeleton className="h-4 w-16 mb-2" />
+          <Skeleton className="h-8 w-12" />
+        </div>
+      );
+    }
+
+    return (
+      <button
+        key={gov.id}
+        onClick={() => onGovernorateSelect(gov)}
+        onMouseEnter={() => setHoveredId(gov.id)}
+        onMouseLeave={() => setHoveredId(null)}
+        className={`
+          p-3 rounded-xl border transition-all duration-200 text-right w-full
+          ${isSelected 
+            ? 'bg-primary text-primary-foreground border-primary shadow-weather scale-105' 
+            : isHovered 
+              ? 'bg-secondary border-primary/50 scale-102'
+              : 'bg-card border-border hover:border-primary/30'
+          }
+        `}
+      >
+        <div className="flex items-center justify-between">
+          <span className="text-2xl">
+            {weather ? getWeatherIcon(weather.condition) : '🌤️'}
+          </span>
+          <div className="text-right">
+            <div className="font-semibold text-sm">{gov.nameAr}</div>
+            <div className={`text-lg font-bold ${isSelected ? 'text-primary-foreground' : 'text-foreground'}`}>
+              {weather ? `${weather.temperature}°` : '--°'}
+            </div>
+          </div>
+        </div>
+      </button>
+    );
+  };
+
   return (
     <Card className="overflow-hidden">
       <CardHeader className="bg-gradient-to-r from-primary/10 to-accent/10">
         <CardTitle className="flex items-center justify-between">
-          <span>🗺️ خريطة فلسطين</span>
-          <Badge variant="outline" className="font-normal">
-            {GOVERNORATES.length} محافظة
-          </Badge>
+          <div className="flex items-center gap-2">
+            <span>🗺️ خريطة فلسطين</span>
+            {isError && (
+              <Badge variant="destructive" className="text-xs">
+                خطأ في التحميل
+              </Badge>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => refetch()}
+              disabled={isFetching}
+              className="gap-1"
+            >
+              <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+              تحديث
+            </Button>
+            <Badge variant="outline" className="font-normal">
+              {GOVERNORATES.length} محافظة
+            </Badge>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4">
@@ -56,39 +117,7 @@ const PalestineMap = ({ onGovernorateSelect, selectedGovernorateId }: PalestineM
                   {regionLabels[region].ar}
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {regions[region].map((gov) => {
-                    const weather = weatherByGovernorate[gov.id];
-                    const isSelected = selectedGovernorateId === gov.id;
-                    const isHovered = hoveredId === gov.id;
-
-                    return (
-                      <button
-                        key={gov.id}
-                        onClick={() => onGovernorateSelect(gov, weather)}
-                        onMouseEnter={() => setHoveredId(gov.id)}
-                        onMouseLeave={() => setHoveredId(null)}
-                        className={`
-                          p-3 rounded-xl border transition-all duration-200 text-right
-                          ${isSelected 
-                            ? 'bg-primary text-primary-foreground border-primary shadow-weather scale-105' 
-                            : isHovered 
-                              ? 'bg-secondary border-primary/50 scale-102'
-                              : 'bg-card border-border hover:border-primary/30'
-                          }
-                        `}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-2xl">{getWeatherIcon(weather.condition)}</span>
-                          <div className="text-right">
-                            <div className="font-semibold text-sm">{gov.nameAr}</div>
-                            <div className={`text-lg font-bold ${isSelected ? 'text-primary-foreground' : 'text-foreground'}`}>
-                              {weather.temperature}°
-                            </div>
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
+                  {regions[region].map(renderGovernorateCard)}
                 </div>
               </div>
             ))}
@@ -104,14 +133,23 @@ const PalestineMap = ({ onGovernorateSelect, selectedGovernorateId }: PalestineM
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {regions.gaza.map((gov) => {
-                  const weather = weatherByGovernorate[gov.id];
+                  const weather = weatherData?.[gov.id];
                   const isSelected = selectedGovernorateId === gov.id;
                   const isHovered = hoveredId === gov.id;
+
+                  if (isLoading) {
+                    return (
+                      <div key={gov.id} className="p-4 rounded-xl border bg-card">
+                        <Skeleton className="h-4 w-20 mb-2" />
+                        <Skeleton className="h-10 w-16" />
+                      </div>
+                    );
+                  }
 
                   return (
                     <button
                       key={gov.id}
-                      onClick={() => onGovernorateSelect(gov, weather)}
+                      onClick={() => onGovernorateSelect(gov)}
                       onMouseEnter={() => setHoveredId(gov.id)}
                       onMouseLeave={() => setHoveredId(null)}
                       className={`
@@ -125,14 +163,16 @@ const PalestineMap = ({ onGovernorateSelect, selectedGovernorateId }: PalestineM
                       `}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-3xl">{getWeatherIcon(weather.condition)}</span>
+                        <span className="text-3xl">
+                          {weather ? getWeatherIcon(weather.condition) : '🌤️'}
+                        </span>
                         <div className="text-right">
                           <div className="font-semibold">{gov.nameAr}</div>
                           <div className={`text-2xl font-bold ${isSelected ? 'text-primary-foreground' : 'text-foreground'}`}>
-                            {weather.temperature}°
+                            {weather ? `${weather.temperature}°` : '--°'}
                           </div>
                           <div className={`text-xs ${isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
-                            رطوبة: {weather.humidity}%
+                            رطوبة: {weather ? `${weather.humidity}%` : '--%'}
                           </div>
                         </div>
                       </div>
@@ -142,10 +182,16 @@ const PalestineMap = ({ onGovernorateSelect, selectedGovernorateId }: PalestineM
               </div>
             </div>
 
-            {/* Quick Legend */}
+            {/* Data Source Info */}
             <div className="mt-6 p-4 bg-secondary/30 rounded-xl">
-              <h4 className="font-semibold mb-3 text-sm">مفتاح الألوان</h4>
-              <div className="grid grid-cols-2 gap-2 text-sm">
+              <h4 className="font-semibold mb-2 text-sm flex items-center gap-2">
+                <span>📡</span>
+                مصدر البيانات
+              </h4>
+              <p className="text-xs text-muted-foreground">
+                بيانات الطقس من Open-Meteo API محدثة كل 15 دقيقة
+              </p>
+              <div className="grid grid-cols-2 gap-2 mt-3 text-sm">
                 <div className="flex items-center gap-2">
                   <span className="text-xl">☀️</span>
                   <span>مشمس</span>
