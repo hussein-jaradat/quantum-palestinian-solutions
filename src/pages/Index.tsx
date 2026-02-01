@@ -1,415 +1,242 @@
-import { useState } from 'react';
-import Header from '@/components/Header';
-import CurrentWeatherCard from '@/components/CurrentWeatherCard';
-import PalestineMap from '@/components/PalestineMap';
-import InteractiveMap from '@/components/InteractiveMap';
-import WeatherAlerts from '@/components/WeatherAlerts';
-import ForecastSection from '@/components/ForecastSection';
-import WeeklyForecastDetailed from '@/components/WeeklyForecastDetailed';
-import MonthlyForecast from '@/components/MonthlyForecast';
-import AgriculturalForecast from '@/components/AgriculturalForecast';
-import FloodRiskSystem from '@/components/FloodRiskSystem';
-import QuantumWeatherSimulator from '@/components/QuantumWeatherSimulator';
-import QuantumBadge from '@/components/QuantumBadge';
-import WeatherAssistant from '@/components/WeatherAssistant';
-import UserTypeSelector from '@/components/UserTypeSelector';
-import CitizenDashboard from '@/components/CitizenDashboard';
-import FarmerDashboard from '@/components/FarmerDashboard';
-import InstitutionDashboard from '@/components/InstitutionDashboard';
-import ReliefDashboard from '@/components/ReliefDashboard';
-import AIAnalysisDashboard from '@/components/AIAnalysisDashboard';
-import GovernorateSelector from '@/components/GovernorateSelector';
-import QANWPAIPanel from '@/components/QANWPAIPanel';
-import HistoricalAnalysis from '@/components/HistoricalAnalysis';
-import SatelliteImageryViewer from '@/components/SatelliteImageryViewer';
-import WindFlowLayer from '@/components/WindFlowLayer';
-import RainfallRadarLayer from '@/components/RainfallRadarLayer';
-import SDGsWidget from '@/components/SDGsWidget';
-import SmartAlertSystem from '@/components/SmartAlertSystem';
-import QuantumBlochSphere from '@/components/QuantumBlochSphere';
-import QuantumSpeedupDemo from '@/components/QuantumSpeedupDemo';
-import NowcastingPanel from '@/components/NowcastingPanel';
-import EnsembleForecast from '@/components/EnsembleForecast';
-import ValidationDashboard from '@/components/ValidationDashboard';
-import WeatherTimeline from '@/components/WeatherTimeline';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { useState, lazy, Suspense } from 'react';
+import AppLayout from '@/components/layout/AppLayout';
+import FullscreenMap from '@/components/map/FullscreenMap';
+import WeatherNowCard from '@/components/weather/WeatherNowCard';
+import HourlyScroller from '@/components/weather/HourlyScroller';
+import WeekForecastCompact from '@/components/weather/WeekForecastCompact';
+import { GlassCard } from '@/components/ui/GlassCard';
+import { Skeleton } from '@/components/ui/skeleton';
 import { GOVERNORATES } from '@/data/weatherData';
-import { Governorate, UserType } from '@/types/weather';
-import { useGovernorateWeather, useAllGovernoratesWeather } from '@/hooks/useWeather';
-import { Atom, Brain, Satellite, Shield, Zap, Globe, Activity, Wind, CloudRain, Target } from 'lucide-react';
+import { Governorate } from '@/types/weather';
+import { useGovernorateWeather } from '@/hooks/useWeather';
+
+// Lazy load heavy components
+const QANWPAIPanel = lazy(() => import('@/components/QANWPAIPanel'));
+const HistoricalAnalysis = lazy(() => import('@/components/HistoricalAnalysis'));
+const SatelliteImageryViewer = lazy(() => import('@/components/SatelliteImageryViewer'));
+const WindFlowLayer = lazy(() => import('@/components/WindFlowLayer'));
+const RainfallRadarLayer = lazy(() => import('@/components/RainfallRadarLayer'));
+const SDGsWidget = lazy(() => import('@/components/SDGsWidget'));
+const SmartAlertSystem = lazy(() => import('@/components/SmartAlertSystem'));
+const QuantumWeatherSimulator = lazy(() => import('@/components/QuantumWeatherSimulator'));
+const QuantumBlochSphere = lazy(() => import('@/components/QuantumBlochSphere'));
+const QuantumSpeedupDemo = lazy(() => import('@/components/QuantumSpeedupDemo'));
+const NowcastingPanel = lazy(() => import('@/components/NowcastingPanel'));
+const EnsembleForecast = lazy(() => import('@/components/EnsembleForecast'));
+const ValidationDashboard = lazy(() => import('@/components/ValidationDashboard'));
+const WeatherTimeline = lazy(() => import('@/components/WeatherTimeline'));
+const WeeklyForecastDetailed = lazy(() => import('@/components/WeeklyForecastDetailed'));
+const MonthlyForecast = lazy(() => import('@/components/MonthlyForecast'));
+const AgriculturalForecast = lazy(() => import('@/components/AgriculturalForecast'));
+const FloodRiskSystem = lazy(() => import('@/components/FloodRiskSystem'));
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <GlassCard variant="subtle" className="h-64 flex items-center justify-center">
+    <div className="text-center space-y-3">
+      <div className="animate-pulse-soft text-4xl">⏳</div>
+      <p className="text-muted-foreground text-sm">جاري التحميل...</p>
+    </div>
+  </GlassCard>
+);
 
 const Index = () => {
   const defaultGovernorate = GOVERNORATES.find((g) => g.id === 'ramallah')!;
   const [selectedGovernorate, setSelectedGovernorate] = useState<Governorate>(defaultGovernorate);
-  const [activeTab, setActiveTab] = useState('overview');
-  const [userType, setUserType] = useState<UserType>('citizen');
+  const [activeSection, setActiveSection] = useState('overview');
 
   const { data, isLoading } = useGovernorateWeather(selectedGovernorate.id);
-  const { data: allWeatherData } = useAllGovernoratesWeather();
 
   const handleGovernorateSelect = (governorate: Governorate) => {
     setSelectedGovernorate(governorate);
   };
 
   const handleNavigate = (section: string) => {
-    setActiveTab(section);
+    setActiveSection(section);
   };
 
-  return (
-    <div className="min-h-screen bg-background" dir="rtl">
-      <Header activeSection={activeTab} onNavigate={handleNavigate} />
-      
-      {/* Main Content */}
-      <main className="container mx-auto px-4 pt-20 pb-8">
-        {/* Hero Section */}
-        <section className="mb-8">
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-background to-accent/10 border border-border/50 p-8 md:p-12">
-            {/* Background decorations */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent/5 rounded-full blur-3xl" />
-            
-            <div className="relative z-10">
-              <div className="flex items-center gap-2 mb-4">
-                <Badge variant="outline" className="gap-1.5 px-3 py-1">
-                  <Activity size={12} className="text-primary" />
-                  <span>Live</span>
-                </Badge>
-                <Badge variant="secondary" className="gap-1.5 px-3 py-1">
-                  <Atom size={12} />
-                  <span>Quantum-Enhanced</span>
-                </Badge>
-              </div>
-              
-              <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-3 tracking-tight">
-                QANWP
-              </h1>
-              <p className="text-lg md:text-xl text-primary font-medium mb-2">
-                Quantum-Augmented Numerical Weather Prediction
-              </p>
-              <p className="text-muted-foreground text-sm md:text-base max-w-2xl">
-                نظام التنبؤ العددي المعزز بالحوسبة الكمية مع تجميع نماذج الذكاء الاصطناعي المتعددة لفلسطين
-              </p>
-              
-              {/* Feature Pills */}
-              <div className="flex flex-wrap gap-2 mt-6">
-                <div className="flex items-center gap-1.5 bg-card/80 backdrop-blur px-3 py-1.5 rounded-full border border-border/50 text-sm">
-                  <Brain size={14} className="text-primary" />
-                  <span>Multi-Model AI Ensemble</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-card/80 backdrop-blur px-3 py-1.5 rounded-full border border-border/50 text-sm">
-                  <Atom size={14} className="text-accent" />
-                  <span>IBM Qiskit</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-card/80 backdrop-blur px-3 py-1.5 rounded-full border border-border/50 text-sm">
-                  <Satellite size={14} className="text-weather-rainy" />
-                  <span>Sentinel-2 & NASA EOSDIS</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-card/80 backdrop-blur px-3 py-1.5 rounded-full border border-border/50 text-sm">
-                  <Shield size={14} className="text-alert-safe" />
-                  <span>SDG 11 & 13</span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Quantum Badge */}
-            <div className="mt-6">
-              <QuantumBadge />
-            </div>
-          </div>
-        </section>
-
-        {/* Governorate Selector */}
-        <section className="mb-6">
-          <GovernorateSelector 
-            selectedGovernorate={selectedGovernorate}
-            onSelect={handleGovernorateSelect}
-          />
-        </section>
-
-        {/* Current Weather */}
-        <section className="mb-8">
-          <CurrentWeatherCard 
-            weather={data?.weather || null} 
-            cityName={selectedGovernorate.nameAr}
-            isLoading={isLoading}
-          />
-        </section>
-
-        {/* User Type Selector */}
-        <section className="mb-8">
-          <Card className="border-border/50 shadow-lg">
-            <CardContent className="p-6">
-              <h2 className="text-lg font-bold mb-4 text-center flex items-center justify-center gap-2">
-                <Zap size={18} className="text-primary" />
-                اختر نوع حسابك للحصول على تجربة مخصصة
-              </h2>
-              <UserTypeSelector selectedType={userType} onTypeChange={setUserType} />
-            </CardContent>
-          </Card>
-        </section>
-
-        {/* Navigation Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8" dir="rtl">
-          <TabsList className="grid w-full grid-cols-6 md:grid-cols-12 gap-1 h-auto p-1 bg-muted/50">
-            <TabsTrigger value="overview" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
-              <span className="hidden md:inline">🗺️ </span>الخريطة
-            </TabsTrigger>
-            <TabsTrigger value="wind" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md data-[state=active]:bg-cyan-600 data-[state=active]:text-white">
-              <span className="hidden md:inline">💨 </span>الرياح
-            </TabsTrigger>
-            <TabsTrigger value="radar" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-              <span className="hidden md:inline">🌧️ </span>الرادار
-            </TabsTrigger>
-            <TabsTrigger value="qanwp-ai" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <span className="hidden md:inline">🤖 </span>QANWP-AI
-            </TabsTrigger>
-            <TabsTrigger value="satellite" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
-              <span className="hidden md:inline">🛰️ </span>الأقمار
-            </TabsTrigger>
-            <TabsTrigger value="historical" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
-              <span className="hidden md:inline">📊 </span>التاريخي
-            </TabsTrigger>
-            <TabsTrigger value="dashboard" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
-              <span className="hidden md:inline">👤 </span>لوحتي
-            </TabsTrigger>
-            <TabsTrigger value="forecast" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
-              <span className="hidden md:inline">📅 </span>أسبوعي
-            </TabsTrigger>
-            <TabsTrigger value="agriculture" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
-              <span className="hidden md:inline">🌱 </span>الزراعة
-            </TabsTrigger>
-            <TabsTrigger value="floods" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
-              <span className="hidden md:inline">🌊 </span>السيول
-            </TabsTrigger>
-            <TabsTrigger value="quantum" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
-              <span className="hidden md:inline">⚛️ </span>كوانتوم
-            </TabsTrigger>
-            <TabsTrigger value="sdgs" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md data-[state=active]:bg-green-600 data-[state=active]:text-white">
-              <span className="hidden md:inline">🎯 </span>SDGs
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Overview Tab - Interactive Map */}
-          <TabsContent value="overview" className="mt-6 space-y-6">
-            {/* Interactive Leaflet Map */}
-            <InteractiveMap 
+  const renderContent = () => {
+    switch (activeSection) {
+      case 'overview':
+        return (
+          <div className="relative h-full">
+            <FullscreenMap
               onGovernorateSelect={handleGovernorateSelect}
               selectedGovernorateId={selectedGovernorate.id}
             />
             
-            {/* Weather Alerts & Simple Map Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <PalestineMap 
-                  onGovernorateSelect={handleGovernorateSelect}
-                  selectedGovernorateId={selectedGovernorate.id}
+            {/* Floating Weather Card */}
+            <div className="absolute bottom-4 left-4 right-4 md:right-auto md:w-96 z-[1000]">
+              <div className="space-y-3">
+                <WeatherNowCard
+                  weather={data?.weather || null}
+                  cityName={selectedGovernorate.nameAr}
+                  isLoading={isLoading}
+                  compact
                 />
-              </div>
-              <div>
-                <SmartAlertSystem />
+                <HourlyScroller hourlyData={data?.hourly || []} />
               </div>
             </div>
-          </TabsContent>
+          </div>
+        );
 
-          {/* Wind Flow Tab */}
-          <TabsContent value="wind" className="mt-6 space-y-6">
-            <WindFlowLayer governorateId={selectedGovernorate.id} />
-          </TabsContent>
-
-          {/* Rainfall Radar Tab */}
-          <TabsContent value="radar" className="mt-6 space-y-6">
-            <RainfallRadarLayer />
-          </TabsContent>
-
-          {/* Personalized Dashboard Tab */}
-          <TabsContent value="dashboard" className="mt-6">
-            {userType === 'citizen' && (
-              <CitizenDashboard
-                weather={data?.weather || null}
-                hourlyData={data?.hourly || []}
-                dailyData={data?.daily || []}
-                governorateName={selectedGovernorate.nameAr}
-              />
-            )}
-            {userType === 'farmer' && (
-              <FarmerDashboard
-                weather={data?.weather || null}
-                dailyData={data?.daily || []}
-                governorateName={selectedGovernorate.nameAr}
-              />
-            )}
-            {userType === 'institution' && (
-              <InstitutionDashboard
-                weather={data?.weather || null}
-                dailyData={data?.daily || []}
-                allWeatherData={allWeatherData || {}}
-                governorateName={selectedGovernorate.nameAr}
-              />
-            )}
-            {userType === 'relief' && (
-              <ReliefDashboard
-                weather={data?.weather || null}
-                dailyData={data?.daily || []}
-                allWeatherData={allWeatherData || {}}
-                governorateName={selectedGovernorate.nameAr}
-              />
-            )}
-          </TabsContent>
-
-          {/* QANWP-AI Tab */}
-          <TabsContent value="qanwp-ai" className="mt-6 space-y-6">
-            {/* Timeline Control */}
-            <WeatherTimeline hoursRange={24} />
-            
-            {/* Nowcasting Panel */}
-            <NowcastingPanel 
-              governorateId={selectedGovernorate.id}
-              governorateName={selectedGovernorate.nameAr}
-            />
-            
-            {/* Ensemble Forecast */}
-            <EnsembleForecast />
-            
-            {/* QANWP-AI Analysis */}
-            <QANWPAIPanel
-              governorateId={selectedGovernorate.id}
-              governorateName={selectedGovernorate.nameAr}
-              currentWeather={data?.weather || null}
-            />
-            
-            {/* Validation Dashboard */}
-            <ValidationDashboard />
-          </TabsContent>
-
-          {/* Satellite Imagery Tab */}
-          <TabsContent value="satellite" className="mt-6">
-            <SatelliteImageryViewer />
-          </TabsContent>
-
-          {/* Historical Analysis Tab */}
-          <TabsContent value="historical" className="mt-6">
-            <HistoricalAnalysis
-              governorateId={selectedGovernorate.id}
-              governorateName={selectedGovernorate.nameAr}
-            />
-          </TabsContent>
-
-          {/* Forecast Tab - Weekly Detailed */}
-          <TabsContent value="forecast" className="mt-6 space-y-6">
-            <WeeklyForecastDetailed 
-              dailyData={data?.daily || []}
-              governorateName={selectedGovernorate.nameAr}
-            />
-            <MonthlyForecast 
-              dailyData={data?.daily || []}
-              governorateName={selectedGovernorate.nameAr}
-            />
-          </TabsContent>
-
-          {/* Agriculture Tab */}
-          <TabsContent value="agriculture" className="mt-6">
-            <AgriculturalForecast 
+      case 'wind':
+        return (
+          <div className="p-4 space-y-4 animate-fade-in">
+            <WeatherNowCard
               weather={data?.weather || null}
-              dailyData={data?.daily || []}
-              governorateName={selectedGovernorate.nameAr}
+              cityName={selectedGovernorate.nameAr}
+              isLoading={isLoading}
             />
-          </TabsContent>
+            <Suspense fallback={<LoadingFallback />}>
+              <WindFlowLayer governorateId={selectedGovernorate.id} />
+            </Suspense>
+          </div>
+        );
 
-          {/* Floods Tab */}
-          <TabsContent value="floods" className="mt-6">
-            <FloodRiskSystem 
-              weatherData={allWeatherData || {}}
+      case 'radar':
+        return (
+          <div className="p-4 space-y-4 animate-fade-in">
+            <Suspense fallback={<LoadingFallback />}>
+              <RainfallRadarLayer />
+            </Suspense>
+          </div>
+        );
+
+      case 'qanwp-ai':
+        return (
+          <div className="p-4 space-y-4 animate-fade-in">
+            <Suspense fallback={<LoadingFallback />}>
+              <WeatherTimeline hoursRange={24} />
+              <NowcastingPanel
+                governorateId={selectedGovernorate.id}
+                governorateName={selectedGovernorate.nameAr}
+              />
+              <EnsembleForecast />
+              <QANWPAIPanel
+                governorateId={selectedGovernorate.id}
+                governorateName={selectedGovernorate.nameAr}
+                currentWeather={data?.weather || null}
+              />
+              <ValidationDashboard />
+            </Suspense>
+          </div>
+        );
+
+      case 'satellite':
+        return (
+          <div className="p-4 animate-fade-in">
+            <Suspense fallback={<LoadingFallback />}>
+              <SatelliteImageryViewer />
+            </Suspense>
+          </div>
+        );
+
+      case 'historical':
+        return (
+          <div className="p-4 animate-fade-in">
+            <Suspense fallback={<LoadingFallback />}>
+              <HistoricalAnalysis
+                governorateId={selectedGovernorate.id}
+                governorateName={selectedGovernorate.nameAr}
+              />
+            </Suspense>
+          </div>
+        );
+
+      case 'forecast':
+        return (
+          <div className="p-4 space-y-4 animate-fade-in">
+            <WeatherNowCard
+              weather={data?.weather || null}
+              cityName={selectedGovernorate.nameAr}
+              isLoading={isLoading}
+            />
+            <HourlyScroller hourlyData={data?.hourly || []} />
+            <WeekForecastCompact dailyData={data?.daily || []} />
+            <Suspense fallback={<LoadingFallback />}>
+              <WeeklyForecastDetailed
+                dailyData={data?.daily || []}
+                governorateName={selectedGovernorate.nameAr}
+              />
+              <MonthlyForecast
+                dailyData={data?.daily || []}
+                governorateName={selectedGovernorate.nameAr}
+              />
+            </Suspense>
+          </div>
+        );
+
+      case 'agriculture':
+        return (
+          <div className="p-4 animate-fade-in">
+            <Suspense fallback={<LoadingFallback />}>
+              <AgriculturalForecast
+                weather={data?.weather || null}
+                dailyData={data?.daily || []}
+                governorateName={selectedGovernorate.nameAr}
+              />
+            </Suspense>
+          </div>
+        );
+
+      case 'floods':
+        return (
+          <div className="p-4 animate-fade-in">
+            <Suspense fallback={<LoadingFallback />}>
+              <FloodRiskSystem
+                weatherData={{}}
+                selectedGovernorateId={selectedGovernorate.id}
+                dailyData={data?.daily || []}
+              />
+            </Suspense>
+          </div>
+        );
+
+      case 'quantum':
+        return (
+          <div className="p-4 space-y-4 animate-fade-in">
+            <Suspense fallback={<LoadingFallback />}>
+              <QuantumWeatherSimulator />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <QuantumBlochSphere />
+                <QuantumSpeedupDemo />
+              </div>
+            </Suspense>
+          </div>
+        );
+
+      case 'sdgs':
+        return (
+          <div className="p-4 animate-fade-in">
+            <Suspense fallback={<LoadingFallback />}>
+              <SDGsWidget />
+            </Suspense>
+          </div>
+        );
+
+      default:
+        return (
+          <div className="relative h-full">
+            <FullscreenMap
+              onGovernorateSelect={handleGovernorateSelect}
               selectedGovernorateId={selectedGovernorate.id}
-              dailyData={data?.daily || []}
             />
-          </TabsContent>
-
-          {/* Quantum Tab */}
-          <TabsContent value="quantum" className="mt-6 space-y-6">
-            <QuantumWeatherSimulator />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <QuantumBlochSphere />
-              <QuantumSpeedupDemo />
-            </div>
-          </TabsContent>
-
-          {/* SDGs Tab */}
-          <TabsContent value="sdgs" className="mt-6">
-            <SDGsWidget />
-          </TabsContent>
-        </Tabs>
-
-        {/* Footer */}
-        <footer className="mt-12 pt-8 border-t border-border">
-          <div className="grid md:grid-cols-3 gap-8 mb-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="bg-primary/10 p-2 rounded-lg">
-                  <Atom size={20} className="text-primary" />
-                </div>
-                <span className="font-bold text-lg">QANWP</span>
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                نظام التنبؤ العددي المعزز بالحوسبة الكمية - أول منصة أرصاد ذكية في فلسطين تجمع بين الحوسبة الكمية والذكاء الاصطناعي.
-              </p>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-3">التقنيات المستخدمة</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2">
-                  <span className="text-primary">•</span>
-                  IBM Qiskit - VQE, QAOA, QNN
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-primary">•</span>
-                  Google Gemini AI Models
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-primary">•</span>
-                  Open-Meteo Weather API
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-primary">•</span>
-                  NASA EOSDIS & Copernicus
-                </li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-3">أهداف التنمية المستدامة</h3>
-              <div className="flex gap-3">
-                <div className="bg-primary/10 rounded-lg p-3 text-center">
-                  <Globe size={20} className="mx-auto mb-1 text-primary" />
-                  <span className="text-xs">SDG 11</span>
-                </div>
-                <div className="bg-accent/10 rounded-lg p-3 text-center">
-                  <Shield size={20} className="mx-auto mb-1 text-accent" />
-                  <span className="text-xs">SDG 13</span>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground mt-3">
-                NYUAD Hackathon for Social Good
-              </p>
-            </div>
           </div>
-          
-          <div className="text-center py-4 border-t border-border/50">
-            <p className="text-sm text-muted-foreground">
-              🇵🇸 جميع الحقوق محفوظة © {new Date().getFullYear()} QANWP - فلسطين
-            </p>
-          </div>
-        </footer>
-      </main>
+        );
+    }
+  };
 
-      {/* AI Weather Assistant */}
-      <WeatherAssistant 
-        weatherContext={data?.weather}
-        governorateName={selectedGovernorate.nameAr}
-      />
-    </div>
+  return (
+    <AppLayout
+      selectedGovernorate={selectedGovernorate}
+      onGovernorateSelect={handleGovernorateSelect}
+      weather={data?.weather || null}
+      activeSection={activeSection}
+      onNavigate={handleNavigate}
+    >
+      {renderContent()}
+    </AppLayout>
   );
 };
 
