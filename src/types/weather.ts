@@ -78,3 +78,48 @@ export interface FloodRiskZone {
   riskLevel: 'low' | 'medium' | 'high';
   affectedAreas: string[];
 }
+
+// User Types for specialized interfaces
+export type UserType = 'citizen' | 'farmer' | 'institution' | 'relief';
+
+export interface UserProfile {
+  type: UserType;
+  nameAr: string;
+  icon: string;
+  description: string;
+  features: string[];
+}
+
+// AI Analysis Types
+export interface AIWeatherAnalysis {
+  summary: string;
+  insights: string[];
+  recommendations: string[];
+  riskLevel: 'low' | 'medium' | 'high';
+  confidenceScore: number;
+}
+
+export interface AIPrediction {
+  type: 'temperature' | 'precipitation' | 'storm' | 'drought';
+  probability: number;
+  timeframe: string;
+  description: string;
+  impact: string;
+}
+
+export interface AIAgricultureAdvice {
+  cropType: string;
+  action: 'plant' | 'irrigate' | 'harvest' | 'protect' | 'wait';
+  urgency: 'low' | 'medium' | 'high';
+  reason: string;
+  timing: string;
+}
+
+export interface AIFloodPrediction {
+  zoneId: string;
+  zoneName: string;
+  riskScore: number;
+  peakTime: string;
+  waterLevel: 'normal' | 'elevated' | 'high' | 'critical';
+  evacuationAdvice: string;
+}

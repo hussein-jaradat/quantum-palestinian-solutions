@@ -10,15 +10,23 @@ import FloodRiskSystem from '@/components/FloodRiskSystem';
 import QuantumWeatherSimulator from '@/components/QuantumWeatherSimulator';
 import QuantumBadge from '@/components/QuantumBadge';
 import WeatherAssistant from '@/components/WeatherAssistant';
+import UserTypeSelector from '@/components/UserTypeSelector';
+import CitizenDashboard from '@/components/CitizenDashboard';
+import FarmerDashboard from '@/components/FarmerDashboard';
+import InstitutionDashboard from '@/components/InstitutionDashboard';
+import ReliefDashboard from '@/components/ReliefDashboard';
+import AIAnalysisDashboard from '@/components/AIAnalysisDashboard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
 import { GOVERNORATES } from '@/data/weatherData';
-import { Governorate } from '@/types/weather';
+import { Governorate, UserType } from '@/types/weather';
 import { useGovernorateWeather, useAllGovernoratesWeather } from '@/hooks/useWeather';
 
 const Index = () => {
   const defaultGovernorate = GOVERNORATES.find((g) => g.id === 'ramallah')!;
   const [selectedGovernorate, setSelectedGovernorate] = useState<Governorate>(defaultGovernorate);
   const [activeTab, setActiveTab] = useState('overview');
+  const [userType, setUserType] = useState<UserType>('citizen');
 
   const { data, isLoading } = useGovernorateWeather(selectedGovernorate.id);
   const { data: allWeatherData } = useAllGovernoratesWeather();
@@ -48,6 +56,16 @@ const Index = () => {
           <QuantumBadge />
         </section>
 
+        {/* User Type Selector */}
+        <section className="mb-8">
+          <Card className="glass-effect">
+            <CardContent className="p-6">
+              <h2 className="text-lg font-bold mb-4 text-center">اختر نوع حسابك للحصول على تجربة مخصصة</h2>
+              <UserTypeSelector selectedType={userType} onTypeChange={setUserType} />
+            </CardContent>
+          </Card>
+        </section>
+
         {/* Current Weather */}
         <section className="mb-8">
           <CurrentWeatherCard 
@@ -59,10 +77,12 @@ const Index = () => {
 
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8" dir="rtl">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 gap-1">
-            <TabsTrigger value="overview">🗺️ نظرة عامة</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 md:grid-cols-8 gap-1">
+            <TabsTrigger value="overview">🗺️ الخريطة</TabsTrigger>
+            <TabsTrigger value="dashboard">📊 لوحتي</TabsTrigger>
+            <TabsTrigger value="ai">🧠 AI تحليل</TabsTrigger>
             <TabsTrigger value="forecast">📅 التنبؤات</TabsTrigger>
-            <TabsTrigger value="monthly">📊 شهري</TabsTrigger>
+            <TabsTrigger value="monthly">📈 شهري</TabsTrigger>
             <TabsTrigger value="agriculture">🌱 الزراعة</TabsTrigger>
             <TabsTrigger value="floods">🌊 السيول</TabsTrigger>
             <TabsTrigger value="quantum">⚛️ الكوانتوم</TabsTrigger>
@@ -81,6 +101,50 @@ const Index = () => {
                 <WeatherAlerts />
               </div>
             </div>
+          </TabsContent>
+
+          {/* Personalized Dashboard Tab */}
+          <TabsContent value="dashboard" className="mt-6">
+            {userType === 'citizen' && (
+              <CitizenDashboard
+                weather={data?.weather || null}
+                hourlyData={data?.hourly || []}
+                dailyData={data?.daily || []}
+                governorateName={selectedGovernorate.nameAr}
+              />
+            )}
+            {userType === 'farmer' && (
+              <FarmerDashboard
+                weather={data?.weather || null}
+                dailyData={data?.daily || []}
+                governorateName={selectedGovernorate.nameAr}
+              />
+            )}
+            {userType === 'institution' && (
+              <InstitutionDashboard
+                weather={data?.weather || null}
+                dailyData={data?.daily || []}
+                allWeatherData={allWeatherData || {}}
+                governorateName={selectedGovernorate.nameAr}
+              />
+            )}
+            {userType === 'relief' && (
+              <ReliefDashboard
+                weather={data?.weather || null}
+                dailyData={data?.daily || []}
+                allWeatherData={allWeatherData || {}}
+                governorateName={selectedGovernorate.nameAr}
+              />
+            )}
+          </TabsContent>
+
+          {/* AI Analysis Tab */}
+          <TabsContent value="ai" className="mt-6">
+            <AIAnalysisDashboard
+              weather={data?.weather || null}
+              dailyData={data?.daily || []}
+              governorateName={selectedGovernorate.nameAr}
+            />
           </TabsContent>
 
           {/* Forecast Tab */}
