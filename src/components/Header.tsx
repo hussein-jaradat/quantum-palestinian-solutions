@@ -40,9 +40,10 @@ const Header = ({ activeSection = 'overview', onNavigate }: HeaderProps) => {
 
   const navItems = [
     { id: 'overview', labelAr: 'الخريطة', labelEn: 'Map', icon: '🗺️' },
+    { id: 'qanwp-ai', labelAr: 'QANWP-AI', labelEn: 'QANWP-AI', icon: '🤖' },
+    { id: 'satellite', labelAr: 'الأقمار', labelEn: 'Satellite', icon: '🛰️' },
+    { id: 'historical', labelAr: 'التاريخي', labelEn: 'Historical', icon: '📊' },
     { id: 'forecast', labelAr: 'التنبؤات', labelEn: 'Forecast', icon: '📅' },
-    { id: 'monthly', labelAr: 'الشهري', labelEn: 'Monthly', icon: '📈' },
-    { id: 'ai', labelAr: 'تحليل AI', labelEn: 'AI Analysis', icon: '🧠' },
     { id: 'agriculture', labelAr: 'الزراعة', labelEn: 'Agriculture', icon: '🌱' },
     { id: 'floods', labelAr: 'السيول', labelEn: 'Floods', icon: '🌊' },
     { id: 'quantum', labelAr: 'الكوانتوم', labelEn: 'Quantum', icon: '⚛️' },

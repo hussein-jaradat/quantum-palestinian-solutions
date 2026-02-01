@@ -19,6 +19,9 @@ import InstitutionDashboard from '@/components/InstitutionDashboard';
 import ReliefDashboard from '@/components/ReliefDashboard';
 import AIAnalysisDashboard from '@/components/AIAnalysisDashboard';
 import GovernorateSelector from '@/components/GovernorateSelector';
+import QANWPAIPanel from '@/components/QANWPAIPanel';
+import HistoricalAnalysis from '@/components/HistoricalAnalysis';
+import SatelliteImageryViewer from '@/components/SatelliteImageryViewer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -139,15 +142,21 @@ const Index = () => {
 
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8" dir="rtl">
-          <TabsList className="grid w-full grid-cols-4 md:grid-cols-8 gap-1 h-auto p-1 bg-muted/50">
+          <TabsList className="grid w-full grid-cols-5 md:grid-cols-10 gap-1 h-auto p-1 bg-muted/50">
             <TabsTrigger value="overview" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
               <span className="hidden md:inline">🗺️ </span>الخريطة
             </TabsTrigger>
-            <TabsTrigger value="dashboard" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
-              <span className="hidden md:inline">📊 </span>لوحتي
+            <TabsTrigger value="qanwp-ai" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <span className="hidden md:inline">🤖 </span>QANWP-AI
             </TabsTrigger>
-            <TabsTrigger value="ai" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
-              <span className="hidden md:inline">🧠 </span>AI
+            <TabsTrigger value="satellite" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
+              <span className="hidden md:inline">🛰️ </span>الأقمار
+            </TabsTrigger>
+            <TabsTrigger value="historical" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
+              <span className="hidden md:inline">📊 </span>التاريخي
+            </TabsTrigger>
+            <TabsTrigger value="dashboard" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
+              <span className="hidden md:inline">👤 </span>لوحتي
             </TabsTrigger>
             <TabsTrigger value="forecast" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
               <span className="hidden md:inline">📅 </span>أسبوعي
@@ -223,11 +232,24 @@ const Index = () => {
             )}
           </TabsContent>
 
-          {/* AI Analysis Tab */}
-          <TabsContent value="ai" className="mt-6">
-            <AIAnalysisDashboard
-              weather={data?.weather || null}
-              dailyData={data?.daily || []}
+          {/* QANWP-AI Tab */}
+          <TabsContent value="qanwp-ai" className="mt-6">
+            <QANWPAIPanel
+              governorateId={selectedGovernorate.id}
+              governorateName={selectedGovernorate.nameAr}
+              currentWeather={data?.weather || null}
+            />
+          </TabsContent>
+
+          {/* Satellite Imagery Tab */}
+          <TabsContent value="satellite" className="mt-6">
+            <SatelliteImageryViewer />
+          </TabsContent>
+
+          {/* Historical Analysis Tab */}
+          <TabsContent value="historical" className="mt-6">
+            <HistoricalAnalysis
+              governorateId={selectedGovernorate.id}
               governorateName={selectedGovernorate.nameAr}
             />
           </TabsContent>

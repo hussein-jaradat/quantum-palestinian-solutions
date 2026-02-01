@@ -14,7 +14,117 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ai_analysis_cache: {
+        Row: {
+          analysis_result: Json
+          analysis_type: string
+          created_at: string
+          expires_at: string
+          governorate_id: string
+          id: string
+        }
+        Insert: {
+          analysis_result: Json
+          analysis_type: string
+          created_at?: string
+          expires_at: string
+          governorate_id: string
+          id?: string
+        }
+        Update: {
+          analysis_result?: Json
+          analysis_type?: string
+          created_at?: string
+          expires_at?: string
+          governorate_id?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      climate_patterns: {
+        Row: {
+          avg_precipitation: number | null
+          avg_temperature: number | null
+          created_at: string
+          drought_risk: string | null
+          flood_risk: string | null
+          frost_frequency: number | null
+          governorate_id: string
+          id: string
+          month: number
+          pattern_type: string
+          updated_at: string
+        }
+        Insert: {
+          avg_precipitation?: number | null
+          avg_temperature?: number | null
+          created_at?: string
+          drought_risk?: string | null
+          flood_risk?: string | null
+          frost_frequency?: number | null
+          governorate_id: string
+          id?: string
+          month: number
+          pattern_type: string
+          updated_at?: string
+        }
+        Update: {
+          avg_precipitation?: number | null
+          avg_temperature?: number | null
+          created_at?: string
+          drought_risk?: string | null
+          flood_risk?: string | null
+          frost_frequency?: number | null
+          governorate_id?: string
+          id?: string
+          month?: number
+          pattern_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      historical_weather_data: {
+        Row: {
+          created_at: string
+          date: string
+          governorate_id: string
+          humidity: number | null
+          id: string
+          precipitation: number | null
+          temperature_avg: number | null
+          temperature_max: number | null
+          temperature_min: number | null
+          weather_code: number | null
+          wind_speed: number | null
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          governorate_id: string
+          humidity?: number | null
+          id?: string
+          precipitation?: number | null
+          temperature_avg?: number | null
+          temperature_max?: number | null
+          temperature_min?: number | null
+          weather_code?: number | null
+          wind_speed?: number | null
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          governorate_id?: string
+          humidity?: number | null
+          id?: string
+          precipitation?: number | null
+          temperature_avg?: number | null
+          temperature_max?: number | null
+          temperature_min?: number | null
+          weather_code?: number | null
+          wind_speed?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
