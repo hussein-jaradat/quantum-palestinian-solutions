@@ -1,14 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 import { DailyForecast, HourlyForecast } from '@/types/weather';
 import { getWeatherIcon } from '@/data/weatherData';
 
 interface ForecastSectionProps {
   hourlyData: HourlyForecast[];
   dailyData: DailyForecast[];
+  isLoading?: boolean;
 }
 
-const ForecastSection = ({ hourlyData, dailyData }: ForecastSectionProps) => {
+const ForecastSection = ({ hourlyData, dailyData, isLoading }: ForecastSectionProps) => {
   const formatHour = (isoString: string) => {
     const date = new Date(isoString);
     return date.toLocaleTimeString('ar-PS', { hour: 'numeric', hour12: true });
@@ -27,6 +29,26 @@ const ForecastSection = ({ hourlyData, dailyData }: ForecastSectionProps) => {
     }
     return date.toLocaleDateString('ar-PS', { weekday: 'long' });
   };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <span>📅</span>
+            <span>التنبؤات</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-3 overflow-x-auto pb-4">
+            {[...Array(8)].map((_, i) => (
+              <Skeleton key={i} className="h-28 w-20 rounded-xl flex-shrink-0" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -92,7 +114,7 @@ const ForecastSection = ({ hourlyData, dailyData }: ForecastSectionProps) => {
                         <span>{day.precipitation}%</span>
                       </div>
                     )}
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-sm text-muted-foreground hidden sm:block">
                       رطوبة {day.humidity}%
                     </div>
                     <div className="flex items-center gap-2 min-w-[100px] justify-end">
