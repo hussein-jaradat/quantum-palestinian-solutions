@@ -1,5 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,202 +6,53 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { GOVERNORATES, getWeatherIcon, getConditionNameAr } from '@/data/weatherData';
-import { Governorate, WeatherData } from '@/types/weather';
+import { Governorate } from '@/types/weather';
 import { useAllGovernoratesWeather } from '@/hooks/useWeather';
-import { RefreshCw, Thermometer, Droplets, Wind, MapPin } from 'lucide-react';
+import { RefreshCw, MapPin } from 'lucide-react';
 
 interface InteractiveMapProps {
   onGovernorateSelect: (governorate: Governorate) => void;
   selectedGovernorateId?: string;
 }
 
-// Custom marker icon creator based on temperature
-const createTemperatureIcon = (temp: number, condition: string, isSelected: boolean): L.DivIcon => {
-  const getColor = (t: number): string => {
-    if (t >= 35) return '#ef4444';
-    if (t >= 30) return '#f97316';
-    if (t >= 25) return '#eab308';
-    if (t >= 20) return '#22c55e';
-    if (t >= 15) return '#06b6d4';
-    return '#3b82f6';
-  };
-
-  const color = getColor(temp);
-  const icon = getWeatherIcon(condition as WeatherData['condition']);
-  const size = isSelected ? 60 : 48;
-  const fontSize = isSelected ? '14px' : '12px';
-
-  return L.divIcon({
-    className: 'custom-temp-marker',
-    html: `
-      <div style="
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        transform: translate(-50%, -100%);
-        cursor: pointer;
-        transition: all 0.3s ease;
-      ">
-        <div style="
-          background: linear-gradient(135deg, ${color}, ${color}dd);
-          color: white;
-          padding: 6px 10px;
-          border-radius: 12px;
-          font-weight: bold;
-          font-size: ${fontSize};
-          font-family: 'Cairo', sans-serif;
-          box-shadow: 0 4px 12px ${color}66;
-          border: 2px solid white;
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          ${isSelected ? 'transform: scale(1.15); box-shadow: 0 6px 20px ' + color + '88;' : ''}
-        ">
-          <span style="font-size: 16px;">${icon}</span>
-          <span>${temp}°</span>
-        </div>
-        <div style="
-          width: 0;
-          height: 0;
-          border-left: 8px solid transparent;
-          border-right: 8px solid transparent;
-          border-top: 10px solid ${color};
-          margin-top: -2px;
-        "></div>
-      </div>
-    `,
-    iconSize: [size, size + 20],
-    iconAnchor: [size / 2, size + 20],
-    popupAnchor: [0, -size - 10],
-  });
-};
-
 const PALESTINE_CENTER: L.LatLngExpression = [31.9, 35.0];
 
-// Separate component for map controller to avoid hook issues
-function MapController({ selectedGovernorateId }: { selectedGovernorateId?: string }) {
-  const map = useMap();
+const getTemperatureColor = (temp: number): string => {
+  if (temp >= 35) return '#ef4444';
+  if (temp >= 30) return '#f97316';
+  if (temp >= 25) return '#eab308';
+  if (temp >= 20) return '#22c55e';
+  if (temp >= 15) return '#06b6d4';
+  return '#3b82f6';
+};
 
-  useEffect(() => {
-    if (selectedGovernorateId) {
-      const gov = GOVERNORATES.find((g) => g.id === selectedGovernorateId);
-      if (gov) {
-        map.flyTo([gov.coordinates.lat, gov.coordinates.lng], 10, {
-          duration: 1,
-        });
-      }
-    }
-  }, [selectedGovernorateId, map]);
-
-  return null;
-}
-
-// Separate marker component to isolate popup rendering
-function GovernorateMarker({
-  gov,
-  weather,
-  isSelected,
-  onSelect,
-}: {
-  gov: Governorate;
-  weather?: WeatherData;
-  isSelected: boolean;
-  onSelect: () => void;
-}) {
-  const icon = useMemo(
-    () =>
-      createTemperatureIcon(
-        weather?.temperature || 20,
-        weather?.condition || 'sunny',
-        isSelected
-      ),
-    [weather?.temperature, weather?.condition, isSelected]
-  );
-
-  return (
-    <Marker
-      position={[gov.coordinates.lat, gov.coordinates.lng]}
-      icon={icon}
-      eventHandlers={{
-        click: onSelect,
-      }}
-    >
-      <Popup className="custom-popup" closeButton={false}>
-        <div className="p-3 min-w-[200px] font-cairo" dir="rtl">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-lg">{gov.nameAr}</h3>
-            <span className="text-3xl">
-              {weather ? getWeatherIcon(weather.condition) : '🌤️'}
-            </span>
-          </div>
-
-          {weather ? (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between p-2 bg-primary/5 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <Thermometer className="h-4 w-4 text-destructive" />
-                  <span className="text-sm">درجة الحرارة</span>
-                </div>
-                <span className="font-bold text-lg">{weather.temperature}°C</span>
-              </div>
-
-              <div className="flex items-center justify-between p-2 bg-secondary/50 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <Droplets className="h-4 w-4 text-primary" />
-                  <span className="text-sm">الرطوبة</span>
-                </div>
-                <span className="font-bold">{weather.humidity}%</span>
-              </div>
-
-              <div className="flex items-center justify-between p-2 bg-secondary/50 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <Wind className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">الرياح</span>
-                </div>
-                <span className="font-bold">{weather.windSpeed} كم/س</span>
-              </div>
-
-              <div className="text-center pt-2 border-t">
-                <Badge variant="secondary">{getConditionNameAr(weather.condition)}</Badge>
-              </div>
-            </div>
-          ) : (
-            <p className="text-muted-foreground text-sm">جاري التحميل...</p>
-          )}
-
-          <Button className="w-full mt-3" size="sm" onClick={onSelect}>
-            عرض التفاصيل الكاملة
-          </Button>
-        </div>
-      </Popup>
-    </Marker>
-  );
-}
+const tileLayers = {
+  standard: {
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '© OpenStreetMap contributors',
+  },
+  satellite: {
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attribution: '© Esri',
+  },
+  terrain: {
+    url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+    attribution: '© OpenTopoMap',
+  },
+};
 
 const InteractiveMap = ({
   onGovernorateSelect,
   selectedGovernorateId,
 }: InteractiveMapProps) => {
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const markersRef = useRef<Map<string, L.Marker>>(new Map());
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
+
   const { data: weatherData, isLoading, isError, refetch, isFetching } =
     useAllGovernoratesWeather();
-  const [mapStyle, setMapStyle] = useState<'standard' | 'satellite' | 'terrain'>(
-    'standard'
-  );
-
-  const tileLayers = {
-    standard: {
-      url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      attribution: '© OpenStreetMap contributors',
-    },
-    satellite: {
-      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      attribution: '© Esri',
-    },
-    terrain: {
-      url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
-      attribution: '© OpenTopoMap',
-    },
-  };
+  const [mapStyle, setMapStyle] = useState<'standard' | 'satellite' | 'terrain'>('standard');
 
   const stats = useMemo(() => {
     if (!weatherData || Object.keys(weatherData).length === 0) return null;
@@ -213,6 +63,171 @@ const InteractiveMap = ({
       avg: Math.round(temps.reduce((a, b) => a + b, 0) / temps.length),
     };
   }, [weatherData]);
+
+  // Initialize map
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+
+    const map = L.map(mapContainerRef.current, {
+      center: PALESTINE_CENTER,
+      zoom: 8,
+      minZoom: 7,
+      maxZoom: 12,
+      zoomControl: true,
+    });
+
+    tileLayerRef.current = L.tileLayer(tileLayers.standard.url, {
+      attribution: tileLayers.standard.attribution,
+    }).addTo(map);
+
+    mapRef.current = map;
+
+    return () => {
+      map.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  // Handle tile layer changes
+  useEffect(() => {
+    if (!mapRef.current || !tileLayerRef.current) return;
+
+    tileLayerRef.current.setUrl(tileLayers[mapStyle].url);
+  }, [mapStyle]);
+
+  // Create popup content
+  const createPopupContent = useCallback(
+    (gov: Governorate) => {
+      const weather = weatherData?.[gov.id];
+      const icon = weather ? getWeatherIcon(weather.condition) : '🌤️';
+      const conditionName = weather ? getConditionNameAr(weather.condition) : 'غير معروف';
+
+      return `
+        <div style="font-family: 'Cairo', sans-serif; direction: rtl; min-width: 180px; padding: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="font-weight: bold; font-size: 16px; margin: 0;">${gov.nameAr}</h3>
+            <span style="font-size: 28px;">${icon}</span>
+          </div>
+          ${
+            weather
+              ? `
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(0,0,0,0.05); border-radius: 8px;">
+                <span>🌡️ درجة الحرارة</span>
+                <strong>${weather.temperature}°C</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(0,0,0,0.05); border-radius: 8px;">
+                <span>💧 الرطوبة</span>
+                <strong>${weather.humidity}%</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(0,0,0,0.05); border-radius: 8px;">
+                <span>💨 الرياح</span>
+                <strong>${weather.windSpeed} كم/س</strong>
+              </div>
+              <div style="text-align: center; padding-top: 8px; border-top: 1px solid #eee;">
+                <span style="background: #f0f0f0; padding: 4px 12px; border-radius: 12px; font-size: 12px;">${conditionName}</span>
+              </div>
+            </div>
+          `
+              : '<p style="color: #888;">جاري التحميل...</p>'
+          }
+        </div>
+      `;
+    },
+    [weatherData]
+  );
+
+  // Update markers when weather data changes
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    const map = mapRef.current;
+
+    // Clear existing markers
+    markersRef.current.forEach((marker) => marker.remove());
+    markersRef.current.clear();
+
+    // Create new markers
+    GOVERNORATES.forEach((gov) => {
+      const weather = weatherData?.[gov.id];
+      const temp = weather?.temperature || 20;
+      const condition = weather?.condition || 'sunny';
+      const isSelected = selectedGovernorateId === gov.id;
+      const color = getTemperatureColor(temp);
+      const icon = getWeatherIcon(condition);
+
+      const divIcon = L.divIcon({
+        className: 'custom-temp-marker',
+        html: `
+          <div style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform: translate(-50%, -100%);
+            cursor: pointer;
+            transition: all 0.3s ease;
+          ">
+            <div style="
+              background: linear-gradient(135deg, ${color}, ${color}dd);
+              color: white;
+              padding: 6px 10px;
+              border-radius: 12px;
+              font-weight: bold;
+              font-size: ${isSelected ? '14px' : '12px'};
+              font-family: 'Cairo', sans-serif;
+              box-shadow: 0 4px 12px ${color}66;
+              border: 2px solid white;
+              display: flex;
+              align-items: center;
+              gap: 4px;
+              ${isSelected ? 'transform: scale(1.15); box-shadow: 0 6px 20px ' + color + '88;' : ''}
+            ">
+              <span style="font-size: 16px;">${icon}</span>
+              <span>${temp}°</span>
+            </div>
+            <div style="
+              width: 0;
+              height: 0;
+              border-left: 8px solid transparent;
+              border-right: 8px solid transparent;
+              border-top: 10px solid ${color};
+              margin-top: -2px;
+            "></div>
+          </div>
+        `,
+        iconSize: [60, 80],
+        iconAnchor: [30, 80],
+        popupAnchor: [0, -70],
+      });
+
+      const marker = L.marker([gov.coordinates.lat, gov.coordinates.lng], {
+        icon: divIcon,
+      }).addTo(map);
+
+      marker.bindPopup(createPopupContent(gov), {
+        closeButton: true,
+        className: 'custom-popup',
+      });
+
+      marker.on('click', () => {
+        onGovernorateSelect(gov);
+      });
+
+      markersRef.current.set(gov.id, marker);
+    });
+  }, [weatherData, selectedGovernorateId, createPopupContent, onGovernorateSelect]);
+
+  // Fly to selected governorate
+  useEffect(() => {
+    if (!mapRef.current || !selectedGovernorateId) return;
+
+    const gov = GOVERNORATES.find((g) => g.id === selectedGovernorateId);
+    if (gov) {
+      mapRef.current.flyTo([gov.coordinates.lat, gov.coordinates.lng], 10, {
+        duration: 1,
+      });
+    }
+  }, [selectedGovernorateId]);
 
   if (isLoading) {
     return (
@@ -298,33 +313,11 @@ const InteractiveMap = ({
       </CardHeader>
 
       <CardContent className="p-0 relative">
-        <div className="h-[500px] md:h-[600px] w-full">
-          <MapContainer
-            center={PALESTINE_CENTER}
-            zoom={8}
-            style={{ height: '100%', width: '100%' }}
-            minZoom={7}
-            maxZoom={12}
-            className="z-0"
-          >
-            <TileLayer
-              url={tileLayers[mapStyle].url}
-              attribution={tileLayers[mapStyle].attribution}
-            />
-
-            <MapController selectedGovernorateId={selectedGovernorateId} />
-
-            {GOVERNORATES.map((gov) => (
-              <GovernorateMarker
-                key={gov.id}
-                gov={gov}
-                weather={weatherData?.[gov.id]}
-                isSelected={selectedGovernorateId === gov.id}
-                onSelect={() => onGovernorateSelect(gov)}
-              />
-            ))}
-          </MapContainer>
-        </div>
+        <div
+          ref={mapContainerRef}
+          className="h-[500px] md:h-[600px] w-full"
+          style={{ zIndex: 1 }}
+        />
 
         {/* Legend */}
         <div className="absolute bottom-4 left-4 z-[1000] bg-background/95 backdrop-blur-sm rounded-xl p-3 shadow-lg border">
