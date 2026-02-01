@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { GOVERNORATES, getWeatherIcon, getConditionNameAr } from '@/data/weatherData';
 import { Governorate, WeatherData } from '@/types/weather';
 import { useAllGovernoratesWeather } from '@/hooks/useWeather';
-import { RefreshCw, Thermometer, Droplets, Wind, MapPin, Layers } from 'lucide-react';
+import { RefreshCw, Thermometer, Droplets, Wind, MapPin } from 'lucide-react';
 
 interface InteractiveMapProps {
   onGovernorateSelect: (governorate: Governorate) => void;
@@ -17,18 +17,18 @@ interface InteractiveMapProps {
 }
 
 // Custom marker icon creator based on temperature
-const createTemperatureIcon = (temp: number, condition: string, isSelected: boolean) => {
-  const getColor = (t: number) => {
-    if (t >= 35) return '#ef4444'; // red
-    if (t >= 30) return '#f97316'; // orange
-    if (t >= 25) return '#eab308'; // yellow
-    if (t >= 20) return '#22c55e'; // green
-    if (t >= 15) return '#06b6d4'; // cyan
-    return '#3b82f6'; // blue
+const createTemperatureIcon = (temp: number, condition: string, isSelected: boolean): L.DivIcon => {
+  const getColor = (t: number): string => {
+    if (t >= 35) return '#ef4444';
+    if (t >= 30) return '#f97316';
+    if (t >= 25) return '#eab308';
+    if (t >= 20) return '#22c55e';
+    if (t >= 15) return '#06b6d4';
+    return '#3b82f6';
   };
 
   const color = getColor(temp);
-  const icon = getWeatherIcon(condition as any);
+  const icon = getWeatherIcon(condition as WeatherData['condition']);
   const size = isSelected ? 60 : 48;
   const fontSize = isSelected ? '14px' : '12px';
 
@@ -77,21 +77,15 @@ const createTemperatureIcon = (temp: number, condition: string, isSelected: bool
   });
 };
 
-// Map bounds for Palestine
-const PALESTINE_BOUNDS: L.LatLngBoundsExpression = [
-  [31.2, 34.2], // Southwest
-  [32.6, 35.6], // Northeast
-];
-
 const PALESTINE_CENTER: L.LatLngExpression = [31.9, 35.0];
 
-// Component to handle map events
-const MapController = ({ selectedGovernorateId }: { selectedGovernorateId?: string }) => {
+// Separate component for map controller to avoid hook issues
+function MapController({ selectedGovernorateId }: { selectedGovernorateId?: string }) {
   const map = useMap();
-  
+
   useEffect(() => {
     if (selectedGovernorateId) {
-      const gov = GOVERNORATES.find(g => g.id === selectedGovernorateId);
+      const gov = GOVERNORATES.find((g) => g.id === selectedGovernorateId);
       if (gov) {
         map.flyTo([gov.coordinates.lat, gov.coordinates.lng], 10, {
           duration: 1,
@@ -99,13 +93,101 @@ const MapController = ({ selectedGovernorateId }: { selectedGovernorateId?: stri
       }
     }
   }, [selectedGovernorateId, map]);
-  
-  return null;
-};
 
-const InteractiveMap = ({ onGovernorateSelect, selectedGovernorateId }: InteractiveMapProps) => {
-  const { data: weatherData, isLoading, isError, refetch, isFetching } = useAllGovernoratesWeather();
-  const [mapStyle, setMapStyle] = useState<'standard' | 'satellite' | 'terrain'>('standard');
+  return null;
+}
+
+// Separate marker component to isolate popup rendering
+function GovernorateMarker({
+  gov,
+  weather,
+  isSelected,
+  onSelect,
+}: {
+  gov: Governorate;
+  weather?: WeatherData;
+  isSelected: boolean;
+  onSelect: () => void;
+}) {
+  const icon = useMemo(
+    () =>
+      createTemperatureIcon(
+        weather?.temperature || 20,
+        weather?.condition || 'sunny',
+        isSelected
+      ),
+    [weather?.temperature, weather?.condition, isSelected]
+  );
+
+  return (
+    <Marker
+      position={[gov.coordinates.lat, gov.coordinates.lng]}
+      icon={icon}
+      eventHandlers={{
+        click: onSelect,
+      }}
+    >
+      <Popup className="custom-popup" closeButton={false}>
+        <div className="p-3 min-w-[200px] font-cairo" dir="rtl">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-bold text-lg">{gov.nameAr}</h3>
+            <span className="text-3xl">
+              {weather ? getWeatherIcon(weather.condition) : '🌤️'}
+            </span>
+          </div>
+
+          {weather ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between p-2 bg-primary/5 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Thermometer className="h-4 w-4 text-destructive" />
+                  <span className="text-sm">درجة الحرارة</span>
+                </div>
+                <span className="font-bold text-lg">{weather.temperature}°C</span>
+              </div>
+
+              <div className="flex items-center justify-between p-2 bg-secondary/50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Droplets className="h-4 w-4 text-primary" />
+                  <span className="text-sm">الرطوبة</span>
+                </div>
+                <span className="font-bold">{weather.humidity}%</span>
+              </div>
+
+              <div className="flex items-center justify-between p-2 bg-secondary/50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Wind className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">الرياح</span>
+                </div>
+                <span className="font-bold">{weather.windSpeed} كم/س</span>
+              </div>
+
+              <div className="text-center pt-2 border-t">
+                <Badge variant="secondary">{getConditionNameAr(weather.condition)}</Badge>
+              </div>
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm">جاري التحميل...</p>
+          )}
+
+          <Button className="w-full mt-3" size="sm" onClick={onSelect}>
+            عرض التفاصيل الكاملة
+          </Button>
+        </div>
+      </Popup>
+    </Marker>
+  );
+}
+
+const InteractiveMap = ({
+  onGovernorateSelect,
+  selectedGovernorateId,
+}: InteractiveMapProps) => {
+  const { data: weatherData, isLoading, isError, refetch, isFetching } =
+    useAllGovernoratesWeather();
+  const [mapStyle, setMapStyle] = useState<'standard' | 'satellite' | 'terrain'>(
+    'standard'
+  );
 
   const tileLayers = {
     standard: {
@@ -121,6 +203,16 @@ const InteractiveMap = ({ onGovernorateSelect, selectedGovernorateId }: Interact
       attribution: '© OpenTopoMap',
     },
   };
+
+  const stats = useMemo(() => {
+    if (!weatherData || Object.keys(weatherData).length === 0) return null;
+    const temps = Object.values(weatherData).map((w) => w.temperature);
+    return {
+      max: Math.max(...temps),
+      min: Math.min(...temps),
+      avg: Math.round(temps.reduce((a, b) => a + b, 0) / temps.length),
+    };
+  }, [weatherData]);
 
   if (isLoading) {
     return (
@@ -148,7 +240,9 @@ const InteractiveMap = ({ onGovernorateSelect, selectedGovernorateId }: Interact
             </div>
             <div>
               <h3 className="text-lg font-bold">خريطة فلسطين التفاعلية</h3>
-              <p className="text-xs text-muted-foreground">اضغط على أي محافظة لعرض التفاصيل</p>
+              <p className="text-xs text-muted-foreground">
+                اضغط على أي محافظة لعرض التفاصيل
+              </p>
             </div>
             {isError && (
               <Badge variant="destructive" className="text-xs">
@@ -156,9 +250,8 @@ const InteractiveMap = ({ onGovernorateSelect, selectedGovernorateId }: Interact
               </Badge>
             )}
           </div>
-          
+
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Map Style Selector */}
             <div className="flex items-center gap-1 bg-secondary/50 rounded-lg p-1">
               <Button
                 variant={mapStyle === 'standard' ? 'default' : 'ghost'}
@@ -185,7 +278,7 @@ const InteractiveMap = ({ onGovernorateSelect, selectedGovernorateId }: Interact
                 تضاريس
               </Button>
             </div>
-            
+
             <Button
               variant="outline"
               size="sm"
@@ -196,21 +289,20 @@ const InteractiveMap = ({ onGovernorateSelect, selectedGovernorateId }: Interact
               <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
               تحديث
             </Button>
-            
+
             <Badge variant="outline" className="font-normal">
               {GOVERNORATES.length} محافظة
             </Badge>
           </div>
         </CardTitle>
       </CardHeader>
-      
+
       <CardContent className="p-0 relative">
         <div className="h-[500px] md:h-[600px] w-full">
           <MapContainer
             center={PALESTINE_CENTER}
             zoom={8}
             style={{ height: '100%', width: '100%' }}
-            maxBounds={PALESTINE_BOUNDS}
             minZoom={7}
             maxZoom={12}
             className="z-0"
@@ -219,137 +311,68 @@ const InteractiveMap = ({ onGovernorateSelect, selectedGovernorateId }: Interact
               url={tileLayers[mapStyle].url}
               attribution={tileLayers[mapStyle].attribution}
             />
-            
+
             <MapController selectedGovernorateId={selectedGovernorateId} />
-            
-            {GOVERNORATES.map((gov) => {
-              const weather = weatherData?.[gov.id];
-              const isSelected = selectedGovernorateId === gov.id;
-              
-              return (
-                <Marker
-                  key={gov.id}
-                  position={[gov.coordinates.lat, gov.coordinates.lng]}
-                  icon={createTemperatureIcon(
-                    weather?.temperature || 20,
-                    weather?.condition || 'sunny',
-                    isSelected
-                  )}
-                  eventHandlers={{
-                    click: () => onGovernorateSelect(gov),
-                  }}
-                >
-                  <Popup className="custom-popup" closeButton={false}>
-                    <div className="p-3 min-w-[200px] font-cairo" dir="rtl">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-bold text-lg">{gov.nameAr}</h3>
-                        <span className="text-3xl">{weather ? getWeatherIcon(weather.condition) : '🌤️'}</span>
-                      </div>
-                      
-                      {weather ? (
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between p-2 bg-primary/5 rounded-lg">
-                            <div className="flex items-center gap-2">
-                              <Thermometer className="h-4 w-4 text-red-500" />
-                              <span className="text-sm">درجة الحرارة</span>
-                            </div>
-                            <span className="font-bold text-lg">{weather.temperature}°C</span>
-                          </div>
-                          
-                          <div className="flex items-center justify-between p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
-                            <div className="flex items-center gap-2">
-                              <Droplets className="h-4 w-4 text-blue-500" />
-                              <span className="text-sm">الرطوبة</span>
-                            </div>
-                            <span className="font-bold">{weather.humidity}%</span>
-                          </div>
-                          
-                          <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-950/30 rounded-lg">
-                            <div className="flex items-center gap-2">
-                              <Wind className="h-4 w-4 text-green-500" />
-                              <span className="text-sm">الرياح</span>
-                            </div>
-                            <span className="font-bold">{weather.windSpeed} كم/س</span>
-                          </div>
-                          
-                          <div className="text-center pt-2 border-t">
-                            <Badge variant="secondary">
-                              {getConditionNameAr(weather.condition)}
-                            </Badge>
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="text-muted-foreground text-sm">جاري التحميل...</p>
-                      )}
-                      
-                      <Button 
-                        className="w-full mt-3" 
-                        size="sm"
-                        onClick={() => onGovernorateSelect(gov)}
-                      >
-                        عرض التفاصيل الكاملة
-                      </Button>
-                    </div>
-                  </Popup>
-                </Marker>
-              );
-            })}
+
+            {GOVERNORATES.map((gov) => (
+              <GovernorateMarker
+                key={gov.id}
+                gov={gov}
+                weather={weatherData?.[gov.id]}
+                isSelected={selectedGovernorateId === gov.id}
+                onSelect={() => onGovernorateSelect(gov)}
+              />
+            ))}
           </MapContainer>
         </div>
-        
+
         {/* Legend */}
         <div className="absolute bottom-4 left-4 z-[1000] bg-background/95 backdrop-blur-sm rounded-xl p-3 shadow-lg border">
           <h4 className="text-xs font-bold mb-2 text-center">مؤشر الحرارة</h4>
           <div className="flex flex-col gap-1 text-xs">
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full bg-[#ef4444]"></div>
+              <div className="w-4 h-4 rounded-full bg-destructive"></div>
               <span>35°+ ساخن جداً</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full bg-[#f97316]"></div>
+              <div className="w-4 h-4 rounded-full bg-orange-500"></div>
               <span>30-35° ساخن</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full bg-[#eab308]"></div>
+              <div className="w-4 h-4 rounded-full bg-yellow-500"></div>
               <span>25-30° دافئ</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full bg-[#22c55e]"></div>
+              <div className="w-4 h-4 rounded-full bg-green-500"></div>
               <span>20-25° معتدل</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full bg-[#06b6d4]"></div>
+              <div className="w-4 h-4 rounded-full bg-cyan-500"></div>
               <span>15-20° بارد</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full bg-[#3b82f6]"></div>
+              <div className="w-4 h-4 rounded-full bg-primary"></div>
               <span>&lt;15° بارد جداً</span>
             </div>
           </div>
         </div>
-        
+
         {/* Region Stats */}
         <div className="absolute top-4 right-4 z-[1000] bg-background/95 backdrop-blur-sm rounded-xl p-3 shadow-lg border max-w-[200px]">
           <h4 className="text-xs font-bold mb-2">إحصائيات سريعة</h4>
-          {weatherData && (
+          {stats && (
             <div className="space-y-1 text-xs">
               <div className="flex justify-between">
                 <span>أعلى حرارة:</span>
-                <span className="font-bold text-red-500">
-                  {Math.max(...Object.values(weatherData).map(w => w.temperature))}°
-                </span>
+                <span className="font-bold text-destructive">{stats.max}°</span>
               </div>
               <div className="flex justify-between">
                 <span>أدنى حرارة:</span>
-                <span className="font-bold text-blue-500">
-                  {Math.min(...Object.values(weatherData).map(w => w.temperature))}°
-                </span>
+                <span className="font-bold text-primary">{stats.min}°</span>
               </div>
               <div className="flex justify-between">
                 <span>متوسط الحرارة:</span>
-                <span className="font-bold">
-                  {Math.round(Object.values(weatherData).reduce((a, b) => a + b.temperature, 0) / Object.values(weatherData).length)}°
-                </span>
+                <span className="font-bold">{stats.avg}°</span>
               </div>
             </div>
           )}
