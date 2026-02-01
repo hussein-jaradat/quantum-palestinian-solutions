@@ -1,1 +1,13 @@
 project_id = "jjaiypbcczisersuvlgt"
+
+[functions.weather-assistant]
+verify_jwt = false
+
+[functions.qanwp-ai-engine]
+verify_jwt = false
+
+[functions.historical-data]
+verify_jwt = false
+
+[functions.satellite-imagery]
+verify_jwt = false
