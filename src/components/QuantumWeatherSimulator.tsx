@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Atom, Zap, TrendingUp, BarChart3, Play, RefreshCw,
-  CircleDot, ArrowRight, Activity
+  CircleDot, ArrowRight, Activity, Cpu, Network
 } from 'lucide-react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar
+  BarChart, Bar, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis
 } from 'recharts';
+import QuantumBlochSphere from './QuantumBlochSphere';
+import QuantumSpeedupDemo from './QuantumSpeedupDemo';
 
 // Quantum simulation results types
 interface QuantumResult {
@@ -292,24 +294,78 @@ const QuantumWeatherSimulator = () => {
 
           <TabsContent value="qnn" className="space-y-4">
             <div className="p-4 bg-secondary/30 rounded-xl">
-              <h4 className="font-semibold mb-2">Quantum Neural Networks (QNN)</h4>
+              <h4 className="font-semibold mb-2 flex items-center gap-2">
+                <Network className="h-5 w-5 text-green-500" />
+                Quantum Neural Networks (QNN)
+              </h4>
               <p className="text-sm text-muted-foreground">
                 شبكات عصبية كمية للتعرف على أنماط الطقس من صور الأقمار الصناعية وتحسين التنبؤات طويلة المدى.
               </p>
             </div>
             
-            <div className="grid grid-cols-3 gap-4">
-              <div className="p-4 bg-purple-500/10 rounded-xl text-center">
+            <div className="grid grid-cols-4 gap-4">
+              <div className="p-4 bg-purple-500/10 rounded-xl text-center border border-purple-500/20">
+                <Cpu className="h-6 w-6 text-purple-500 mx-auto mb-2" />
                 <div className="text-3xl font-bold text-purple-500">4</div>
                 <div className="text-xs text-muted-foreground">Qubits</div>
               </div>
-              <div className="p-4 bg-blue-500/10 rounded-xl text-center">
+              <div className="p-4 bg-blue-500/10 rounded-xl text-center border border-blue-500/20">
+                <Activity className="h-6 w-6 text-blue-500 mx-auto mb-2" />
                 <div className="text-3xl font-bold text-blue-500">12</div>
                 <div className="text-xs text-muted-foreground">Layers</div>
               </div>
-              <div className="p-4 bg-green-500/10 rounded-xl text-center">
+              <div className="p-4 bg-green-500/10 rounded-xl text-center border border-green-500/20">
+                <TrendingUp className="h-6 w-6 text-green-500 mx-auto mb-2" />
                 <div className="text-3xl font-bold text-green-500">48</div>
                 <div className="text-xs text-muted-foreground">Parameters</div>
+              </div>
+              <div className="p-4 bg-amber-500/10 rounded-xl text-center border border-amber-500/20">
+                <Zap className="h-6 w-6 text-amber-500 mx-auto mb-2" />
+                <div className="text-3xl font-bold text-amber-500">92%</div>
+                <div className="text-xs text-muted-foreground">Accuracy</div>
+              </div>
+            </div>
+
+            {/* QNN Architecture Visualization */}
+            <div className="p-4 bg-foreground/5 rounded-xl">
+              <h5 className="font-semibold mb-3 text-sm">بنية الشبكة العصبية الكمية</h5>
+              <div className="flex items-center justify-center gap-2 overflow-x-auto py-4">
+                {/* Input Layer */}
+                <div className="flex flex-col gap-1">
+                  <div className="text-xs text-center mb-1">المدخلات</div>
+                  {[1,2,3,4].map(i => (
+                    <div key={i} className="w-8 h-8 rounded-full bg-primary/20 border border-primary flex items-center justify-center text-xs">
+                      q{i-1}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Arrows */}
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                
+                {/* Hidden Layers */}
+                {[1,2,3].map(layer => (
+                  <div key={layer} className="flex flex-col gap-1">
+                    <div className="text-xs text-center mb-1">Layer {layer}</div>
+                    {[1,2,3,4].map(i => (
+                      <div key={i} className="w-8 h-8 rounded-full bg-purple-500/20 border border-purple-500 flex items-center justify-center">
+                        <div className="w-3 h-3 rounded-full bg-purple-500 animate-pulse" />
+                      </div>
+                    ))}
+                  </div>
+                ))}
+                
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                
+                {/* Output Layer */}
+                <div className="flex flex-col gap-1">
+                  <div className="text-xs text-center mb-1">المخرجات</div>
+                  {['T°', '💧', '💨'].map((out, i) => (
+                    <div key={i} className="w-10 h-8 rounded-lg bg-green-500/20 border border-green-500 flex items-center justify-center text-sm">
+                      {out}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </TabsContent>

@@ -28,6 +28,10 @@ import SDGsWidget from '@/components/SDGsWidget';
 import SmartAlertSystem from '@/components/SmartAlertSystem';
 import QuantumBlochSphere from '@/components/QuantumBlochSphere';
 import QuantumSpeedupDemo from '@/components/QuantumSpeedupDemo';
+import NowcastingPanel from '@/components/NowcastingPanel';
+import EnsembleForecast from '@/components/EnsembleForecast';
+import ValidationDashboard from '@/components/ValidationDashboard';
+import WeatherTimeline from '@/components/WeatherTimeline';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -255,12 +259,28 @@ const Index = () => {
           </TabsContent>
 
           {/* QANWP-AI Tab */}
-          <TabsContent value="qanwp-ai" className="mt-6">
+          <TabsContent value="qanwp-ai" className="mt-6 space-y-6">
+            {/* Timeline Control */}
+            <WeatherTimeline hoursRange={24} />
+            
+            {/* Nowcasting Panel */}
+            <NowcastingPanel 
+              governorateId={selectedGovernorate.id}
+              governorateName={selectedGovernorate.nameAr}
+            />
+            
+            {/* Ensemble Forecast */}
+            <EnsembleForecast />
+            
+            {/* QANWP-AI Analysis */}
             <QANWPAIPanel
               governorateId={selectedGovernorate.id}
               governorateName={selectedGovernorate.nameAr}
               currentWeather={data?.weather || null}
             />
+            
+            {/* Validation Dashboard */}
+            <ValidationDashboard />
           </TabsContent>
 
           {/* Satellite Imagery Tab */}
