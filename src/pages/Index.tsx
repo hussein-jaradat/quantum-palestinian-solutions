@@ -22,13 +22,19 @@ import GovernorateSelector from '@/components/GovernorateSelector';
 import QANWPAIPanel from '@/components/QANWPAIPanel';
 import HistoricalAnalysis from '@/components/HistoricalAnalysis';
 import SatelliteImageryViewer from '@/components/SatelliteImageryViewer';
+import WindFlowLayer from '@/components/WindFlowLayer';
+import RainfallRadarLayer from '@/components/RainfallRadarLayer';
+import SDGsWidget from '@/components/SDGsWidget';
+import SmartAlertSystem from '@/components/SmartAlertSystem';
+import QuantumBlochSphere from '@/components/QuantumBlochSphere';
+import QuantumSpeedupDemo from '@/components/QuantumSpeedupDemo';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { GOVERNORATES } from '@/data/weatherData';
 import { Governorate, UserType } from '@/types/weather';
 import { useGovernorateWeather, useAllGovernoratesWeather } from '@/hooks/useWeather';
-import { Atom, Brain, Satellite, Shield, Zap, Globe, Activity } from 'lucide-react';
+import { Atom, Brain, Satellite, Shield, Zap, Globe, Activity, Wind, CloudRain, Target } from 'lucide-react';
 
 const Index = () => {
   const defaultGovernorate = GOVERNORATES.find((g) => g.id === 'ramallah')!;
@@ -142,9 +148,15 @@ const Index = () => {
 
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8" dir="rtl">
-          <TabsList className="grid w-full grid-cols-5 md:grid-cols-10 gap-1 h-auto p-1 bg-muted/50">
+          <TabsList className="grid w-full grid-cols-6 md:grid-cols-12 gap-1 h-auto p-1 bg-muted/50">
             <TabsTrigger value="overview" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
               <span className="hidden md:inline">🗺️ </span>الخريطة
+            </TabsTrigger>
+            <TabsTrigger value="wind" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md data-[state=active]:bg-cyan-600 data-[state=active]:text-white">
+              <span className="hidden md:inline">💨 </span>الرياح
+            </TabsTrigger>
+            <TabsTrigger value="radar" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              <span className="hidden md:inline">🌧️ </span>الرادار
             </TabsTrigger>
             <TabsTrigger value="qanwp-ai" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <span className="hidden md:inline">🤖 </span>QANWP-AI
@@ -161,9 +173,6 @@ const Index = () => {
             <TabsTrigger value="forecast" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
               <span className="hidden md:inline">📅 </span>أسبوعي
             </TabsTrigger>
-            <TabsTrigger value="monthly" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
-              <span className="hidden md:inline">📈 </span>شهري
-            </TabsTrigger>
             <TabsTrigger value="agriculture" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
               <span className="hidden md:inline">🌱 </span>الزراعة
             </TabsTrigger>
@@ -172,6 +181,9 @@ const Index = () => {
             </TabsTrigger>
             <TabsTrigger value="quantum" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md">
               <span className="hidden md:inline">⚛️ </span>كوانتوم
+            </TabsTrigger>
+            <TabsTrigger value="sdgs" className="text-xs md:text-sm py-2.5 data-[state=active]:shadow-md data-[state=active]:bg-green-600 data-[state=active]:text-white">
+              <span className="hidden md:inline">🎯 </span>SDGs
             </TabsTrigger>
           </TabsList>
 
@@ -192,9 +204,19 @@ const Index = () => {
                 />
               </div>
               <div>
-                <WeatherAlerts />
+                <SmartAlertSystem />
               </div>
             </div>
+          </TabsContent>
+
+          {/* Wind Flow Tab */}
+          <TabsContent value="wind" className="mt-6 space-y-6">
+            <WindFlowLayer governorateId={selectedGovernorate.id} />
+          </TabsContent>
+
+          {/* Rainfall Radar Tab */}
+          <TabsContent value="radar" className="mt-6 space-y-6">
+            <RainfallRadarLayer />
           </TabsContent>
 
           {/* Personalized Dashboard Tab */}
@@ -255,15 +277,11 @@ const Index = () => {
           </TabsContent>
 
           {/* Forecast Tab - Weekly Detailed */}
-          <TabsContent value="forecast" className="mt-6">
+          <TabsContent value="forecast" className="mt-6 space-y-6">
             <WeeklyForecastDetailed 
               dailyData={data?.daily || []}
               governorateName={selectedGovernorate.nameAr}
             />
-          </TabsContent>
-
-          {/* Monthly Tab */}
-          <TabsContent value="monthly" className="mt-6">
             <MonthlyForecast 
               dailyData={data?.daily || []}
               governorateName={selectedGovernorate.nameAr}
@@ -289,8 +307,17 @@ const Index = () => {
           </TabsContent>
 
           {/* Quantum Tab */}
-          <TabsContent value="quantum" className="mt-6">
+          <TabsContent value="quantum" className="mt-6 space-y-6">
             <QuantumWeatherSimulator />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <QuantumBlochSphere />
+              <QuantumSpeedupDemo />
+            </div>
+          </TabsContent>
+
+          {/* SDGs Tab */}
+          <TabsContent value="sdgs" className="mt-6">
+            <SDGsWidget />
           </TabsContent>
         </Tabs>
 
