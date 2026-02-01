@@ -2,14 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
-/* QANWP Design System
+/* QANWP Design System v2.0
    Quantum-Augmented Numerical Weather Prediction
    نظام التنبؤ العددي المعزز بالحوسبة الكمية
+   Professional Palestinian Weather Platform
 */
 
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap');
 
-/* Leaflet Custom Styles */
+/* ===== Leaflet Custom Styles ===== */
 .leaflet-container {
   font-family: 'Cairo', sans-serif;
   z-index: 1;
@@ -68,102 +69,125 @@
 
 @layer base {
   :root {
-    /* Palestinian Flag Colors */
+    /* ===== Palestinian Identity Colors ===== */
     --palestine-black: 0 0% 10%;
     --palestine-white: 0 0% 98%;
-    --palestine-green: 142 72% 29%;
-    --palestine-red: 0 72% 51%;
+    --palestine-green: 145 63% 42%;
+    --palestine-red: 0 70% 50%;
+    --palestine-gold: 45 93% 47%;
     
-    /* Weather Status Colors */
+    /* ===== Weather Semantic Colors ===== */
     --weather-sunny: 45 93% 47%;
     --weather-cloudy: 220 14% 71%;
     --weather-rainy: 210 79% 46%;
     --weather-stormy: 270 50% 40%;
     --weather-snowy: 200 19% 95%;
     
-    /* Alert Levels */
-    --alert-safe: 142 72% 29%;
-    --alert-warning: 45 93% 47%;
-    --alert-danger: 0 72% 51%;
+    /* ===== Temperature Gradient ===== */
+    --temp-hot: 0 80% 50%;
+    --temp-warm: 30 90% 50%;
+    --temp-mild: 60 70% 45%;
+    --temp-cool: 180 60% 45%;
+    --temp-cold: 210 80% 50%;
+    --temp-freezing: 200 90% 60%;
     
-    /* Base Theme - Light */
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
+    /* ===== Alert Levels ===== */
+    --alert-safe: 145 63% 42%;
+    --alert-warning: 45 93% 47%;
+    --alert-danger: 0 70% 50%;
+    
+    /* ===== Base Theme - Light (Glassmorphism) ===== */
+    --background: 220 25% 97%;
+    --foreground: 220 25% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 220 25% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 220 25% 10%;
 
-    --primary: 142 72% 29%;
+    --primary: 215 75% 30%;
     --primary-foreground: 0 0% 98%;
+    --primary-light: 215 70% 50%;
 
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 220 20% 94%;
+    --secondary-foreground: 220 25% 10%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 220 20% 94%;
+    --muted-foreground: 220 15% 45%;
 
-    --accent: 0 72% 51%;
+    --accent: 145 63% 42%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 142 72% 29%;
+    --border: 220 20% 88%;
+    --input: 220 20% 88%;
+    --ring: 215 75% 30%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 142 72% 29%;
+    /* ===== Sidebar ===== */
+    --sidebar-background: 220 25% 98%;
+    --sidebar-foreground: 220 25% 10%;
+    --sidebar-primary: 215 75% 30%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 210 40% 96%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 142 72% 29%;
+    --sidebar-accent: 220 20% 94%;
+    --sidebar-accent-foreground: 220 25% 10%;
+    --sidebar-border: 220 20% 88%;
+    --sidebar-ring: 215 75% 30%;
+
+    /* ===== Glass Effects ===== */
+    --glass-bg: 0 0% 100% / 0.85;
+    --glass-border: 0 0% 100% / 0.2;
+    --glass-blur: 20px;
   }
 
   .dark {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 98%;
+    /* ===== Base Theme - Dark (Professional Weather) ===== */
+    --background: 220 25% 8%;
+    --foreground: 220 20% 95%;
 
-    --card: 222 47% 9%;
-    --card-foreground: 210 40% 98%;
+    --card: 220 20% 12%;
+    --card-foreground: 220 20% 95%;
 
-    --popover: 222 47% 9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 220 20% 12%;
+    --popover-foreground: 220 20% 95%;
 
-    --primary: 142 60% 45%;
+    --primary: 215 70% 50%;
     --primary-foreground: 0 0% 98%;
+    --primary-light: 215 65% 60%;
 
-    --secondary: 222 47% 14%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 220 20% 16%;
+    --secondary-foreground: 220 20% 95%;
 
-    --muted: 222 47% 14%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 220 20% 16%;
+    --muted-foreground: 220 15% 55%;
 
-    --accent: 0 65% 55%;
+    --accent: 145 55% 50%;
     --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 62% 50%;
+    --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 222 47% 18%;
-    --input: 222 47% 18%;
-    --ring: 142 60% 45%;
+    --border: 220 20% 20%;
+    --input: 220 20% 20%;
+    --ring: 215 70% 50%;
 
-    --sidebar-background: 222 47% 8%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 142 60% 45%;
+    /* ===== Sidebar Dark ===== */
+    --sidebar-background: 220 25% 10%;
+    --sidebar-foreground: 220 20% 95%;
+    --sidebar-primary: 215 70% 50%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 222 47% 14%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 222 47% 18%;
-    --sidebar-ring: 142 60% 45%;
+    --sidebar-accent: 220 20% 16%;
+    --sidebar-accent-foreground: 220 20% 95%;
+    --sidebar-border: 220 20% 20%;
+    --sidebar-ring: 215 70% 50%;
+
+    /* ===== Glass Effects Dark ===== */
+    --glass-bg: 220 25% 12% / 0.9;
+    --glass-border: 220 20% 25% / 0.3;
   }
 }
 
@@ -172,43 +196,94 @@
     @apply border-border;
   }
 
-  body {
-    @apply bg-background text-foreground antialiased;
-    font-family: 'Cairo', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  }
-
-  /* RTL Support */
-  [dir="rtl"] {
-    direction: rtl;
-  }
-
-  /* Smooth scrolling */
   html {
     scroll-behavior: smooth;
   }
 
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Cairo', 'Tajawal', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  /* RTL Support - True Arabic Design */
+  [dir="rtl"] {
+    direction: rtl;
+    text-align: right;
+  }
+
   /* Custom scrollbar */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
-    background: hsl(var(--muted));
-    border-radius: 4px;
+    background: transparent;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted-foreground) / 0.3);
-    border-radius: 4px;
+    background: hsl(var(--muted-foreground) / 0.2);
+    border-radius: 3px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground) / 0.5);
+    background: hsl(var(--muted-foreground) / 0.4);
+  }
+}
+
+@layer components {
+  /* ===== Glass Card ===== */
+  .glass-card {
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid hsl(var(--glass-border));
+    border-radius: var(--radius);
+  }
+
+  /* ===== Glass Effect (Legacy Support) ===== */
+  .glass-effect {
+    background: hsl(var(--card) / 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  /* ===== Map Container ===== */
+  .map-fullscreen {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  /* ===== Sidebar Styles ===== */
+  .sidebar-collapsed {
+    width: 60px;
+  }
+
+  .sidebar-expanded {
+    width: 320px;
+  }
+
+  /* ===== Weather Card Styles ===== */
+  .weather-card {
+    @apply glass-card p-4 transition-all duration-300;
+  }
+
+  .weather-card:hover {
+    @apply shadow-lg;
+    transform: translateY(-2px);
+  }
+
+  /* ===== Compact Header ===== */
+  .compact-header {
+    height: 48px;
+    @apply glass-effect fixed top-0 left-0 right-0 z-50;
   }
 }
 
 @layer utilities {
+  /* ===== Palestinian Gradients ===== */
   .text-gradient-palestine {
     background: linear-gradient(135deg, hsl(var(--palestine-green)), hsl(var(--palestine-red)));
     -webkit-background-clip: text;
@@ -217,24 +292,37 @@
   }
 
   .bg-gradient-palestine {
-    background: linear-gradient(135deg, hsl(var(--palestine-green)), hsl(var(--palestine-black)));
+    background: linear-gradient(135deg, hsl(var(--palestine-green)), hsl(var(--primary)));
   }
 
+  /* ===== Weather Shadows ===== */
   .shadow-weather {
-    box-shadow: 0 4px 20px -4px hsl(var(--primary) / 0.15);
+    box-shadow: 0 4px 24px -4px hsl(var(--primary) / 0.15);
   }
 
-  .glass-effect {
-    background: hsl(var(--card) / 0.85);
-    backdrop-filter: blur(16px);
-    border: 1px solid hsl(var(--border) / 0.5);
+  .shadow-weather-lg {
+    box-shadow: 0 8px 32px -8px hsl(var(--primary) / 0.2);
   }
 
+  /* ===== Card Interactions ===== */
   .card-hover {
     @apply transition-all duration-300 hover:shadow-lg hover:border-primary/30;
   }
 
-  /* Animations */
+  .card-interactive {
+    @apply transition-all duration-200 cursor-pointer;
+  }
+
+  .card-interactive:hover {
+    @apply shadow-md;
+    transform: translateY(-1px);
+  }
+
+  .card-interactive:active {
+    transform: translateY(0);
+  }
+
+  /* ===== Animations ===== */
   @keyframes slide-up {
     from {
       opacity: 0;
@@ -246,8 +334,15 @@
     }
   }
 
-  .animate-slide-up {
-    animation: slide-up 0.4s ease-out;
+  @keyframes slide-in-right {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 
   @keyframes fade-in {
@@ -255,7 +350,107 @@
     to { opacity: 1; }
   }
 
+  @keyframes pulse-soft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-6px); }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.4s ease-out;
+  }
+
+  .animate-slide-in-right {
+    animation: slide-in-right 0.3s ease-out;
+  }
+
   .animate-fade-in {
     animation: fade-in 0.3s ease-out;
+  }
+
+  .animate-pulse-soft {
+    animation: pulse-soft 2s ease-in-out infinite;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(90deg, transparent 0%, hsl(var(--primary) / 0.1) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  /* ===== Map Overlay Positioning ===== */
+  .map-overlay-top-left {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1000;
+  }
+
+  .map-overlay-top-right {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1000;
+  }
+
+  .map-overlay-bottom-left {
+    position: absolute;
+    bottom: 1rem;
+    left: 1rem;
+    z-index: 1000;
+  }
+
+  .map-overlay-bottom-right {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 1000;
+  }
+
+  /* ===== RTL Utilities ===== */
+  .rtl-flip {
+    transform: scaleX(-1);
+  }
+
+  [dir="rtl"] .rtl-space-reverse {
+    flex-direction: row-reverse;
+  }
+
+  /* ===== Temperature Colors ===== */
+  .temp-hot { color: hsl(var(--temp-hot)); }
+  .temp-warm { color: hsl(var(--temp-warm)); }
+  .temp-mild { color: hsl(var(--temp-mild)); }
+  .temp-cool { color: hsl(var(--temp-cool)); }
+  .temp-cold { color: hsl(var(--temp-cold)); }
+  .temp-freezing { color: hsl(var(--temp-freezing)); }
+
+  .bg-temp-hot { background-color: hsl(var(--temp-hot)); }
+  .bg-temp-warm { background-color: hsl(var(--temp-warm)); }
+  .bg-temp-mild { background-color: hsl(var(--temp-mild)); }
+  .bg-temp-cool { background-color: hsl(var(--temp-cool)); }
+  .bg-temp-cold { background-color: hsl(var(--temp-cold)); }
+  .bg-temp-freezing { background-color: hsl(var(--temp-freezing)); }
+
+  /* ===== Hide Scrollbar Utility ===== */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }
