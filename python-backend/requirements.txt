@@ -1,0 +1,47 @@
+# ==============================================
+# QANWP-AI Python Backend Requirements
+# نظام التنبؤ الجوي الكمومي الفلسطيني
+# ==============================================
+
+# ============ FastAPI & Server ============
+fastapi==0.109.2
+uvicorn[standard]==0.27.1
+pydantic==2.6.1
+python-dotenv==1.0.1
+python-multipart==0.0.9
+
+# ============ Scientific Computing ============
+numpy==1.26.4
+scipy==1.12.0
+pandas==2.2.0
+filterpy==1.4.5
+statsmodels==0.14.1
+pymannkendall==1.4.3
+
+# ============ Machine Learning ============
+scikit-learn==1.4.0
+xgboost==2.0.3
+tensorflow==2.15.0
+keras==2.15.0
+joblib==1.3.2
+
+# ============ Quantum Computing ============
+qiskit==1.0.2
+qiskit-algorithms==0.3.0
+qiskit-machine-learning==0.7.1
+qiskit-optimization==0.6.0
+qiskit-ibm-runtime==0.20.0
+qiskit-aer==0.13.3
+
+# ============ Data Processing ============
+httpx==0.26.0
+aiohttp==3.9.3
+pytz==2024.1
+
+# ============ Testing ============
+pytest==8.0.0
+pytest-asyncio==0.23.4
+
+# ============ Utilities ============
+tqdm==4.66.1
+colorama==0.4.6
