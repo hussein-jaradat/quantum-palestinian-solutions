@@ -18,7 +18,27 @@ interface QuantumRequest {
   shots?: number;
 }
 
-// Build QASM 3.0 circuit based on algorithm and weather parameters
+// Get IBM Cloud Bearer Token from API Key
+async function getIBMBearerToken(apiKey: string): Promise<string> {
+  const response = await fetch("https://iam.cloud.ibm.com/identity/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: `grant_type=urn:ibm:params:oauth:grant-type:apikey&apikey=${apiKey}`,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to get IBM bearer token: ${response.status} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data.access_token;
+}
+
+// Build QASM 3.0 circuit for IBM Quantum Runtime
+// Uses $n syntax for virtual qubits as required by IBM Runtime API
 function buildQuantumCircuit(algorithm: string, params: QuantumRequest['weatherParams']): string {
   // Normalize parameters to rotation angles (0 to 2π)
   const theta1 = ((params.temperature + 20) / 60) * Math.PI; // -20 to 40°C normalized
@@ -27,184 +47,41 @@ function buildQuantumCircuit(algorithm: string, params: QuantumRequest['weatherP
   const theta4 = ((params.windSpeed || 10) / 50) * Math.PI;
 
   if (algorithm === 'vqe') {
-    // VQE circuit for weather parameter optimization
-    return `
-OPENQASM 3.0;
-include "stdgates.inc";
-qubit[4] q;
-bit[4] c;
-
-// Initial superposition
-h q[0];
-h q[1];
-h q[2];
-h q[3];
-
-// Weather parameter encoding layer
-ry(${theta1.toFixed(6)}) q[0];
-rz(${theta2.toFixed(6)}) q[1];
-rx(${theta3.toFixed(6)}) q[2];
-ry(${theta4.toFixed(6)}) q[3];
-
-// Entanglement layer for correlations
-cx q[0], q[1];
-cx q[1], q[2];
-cx q[2], q[3];
-
-// Variational layer 1
-ry(${(theta1 * 0.5).toFixed(6)}) q[0];
-rz(${(theta2 * 0.5).toFixed(6)}) q[1];
-rx(${(theta3 * 0.5).toFixed(6)}) q[2];
-
-// Second entanglement
-cx q[3], q[0];
-cx q[2], q[1];
-
-// Variational layer 2
-ry(${(theta1 * 0.25).toFixed(6)}) q[3];
-rz(${(theta2 * 0.25).toFixed(6)}) q[2];
-
-// Measurement
-c = measure q;
-`;
+    // VQE circuit for weather parameter optimization - IBM Runtime format
+    return `OPENQASM 3.0; include "stdgates.inc"; bit[4] c; h $0; h $1; h $2; h $3; ry(${theta1.toFixed(4)}) $0; rz(${theta2.toFixed(4)}) $1; rx(${theta3.toFixed(4)}) $2; ry(${theta4.toFixed(4)}) $3; cx $0, $1; cx $1, $2; cx $2, $3; ry(${(theta1 * 0.5).toFixed(4)}) $0; rz(${(theta2 * 0.5).toFixed(4)}) $1; c[0] = measure $0; c[1] = measure $1; c[2] = measure $2; c[3] = measure $3;`;
   } else if (algorithm === 'qaoa') {
-    // QAOA circuit for optimization problems (e.g., flood routing)
-    const gamma = 0.5; // Problem Hamiltonian parameter
-    const beta = 0.3;  // Mixer parameter
-    
-    return `
-OPENQASM 3.0;
-include "stdgates.inc";
-qubit[4] q;
-bit[4] c;
-
-// Initial state (uniform superposition)
-h q[0];
-h q[1];
-h q[2];
-h q[3];
-
-// QAOA Layer 1 - Problem Hamiltonian (Cost function encoding)
-// ZZ interactions based on weather correlations
-rzz(${(gamma * theta1).toFixed(6)}) q[0], q[1];
-rzz(${(gamma * theta2).toFixed(6)}) q[1], q[2];
-rzz(${(gamma * theta3).toFixed(6)}) q[2], q[3];
-rzz(${(gamma * theta4).toFixed(6)}) q[3], q[0];
-
-// Mixer layer
-rx(${(2 * beta).toFixed(6)}) q[0];
-rx(${(2 * beta).toFixed(6)}) q[1];
-rx(${(2 * beta).toFixed(6)}) q[2];
-rx(${(2 * beta).toFixed(6)}) q[3];
-
-// QAOA Layer 2 (deeper circuit for better approximation)
-rzz(${(gamma * theta1 * 0.7).toFixed(6)}) q[0], q[1];
-rzz(${(gamma * theta2 * 0.7).toFixed(6)}) q[1], q[2];
-rzz(${(gamma * theta3 * 0.7).toFixed(6)}) q[2], q[3];
-
-rx(${(2 * beta * 0.7).toFixed(6)}) q[0];
-rx(${(2 * beta * 0.7).toFixed(6)}) q[1];
-rx(${(2 * beta * 0.7).toFixed(6)}) q[2];
-rx(${(2 * beta * 0.7).toFixed(6)}) q[3];
-
-// Measurement
-c = measure q;
-`;
+    // QAOA circuit - IBM Runtime format
+    const gamma = 0.5;
+    const beta = 0.3;
+    return `OPENQASM 3.0; include "stdgates.inc"; bit[4] c; h $0; h $1; h $2; h $3; rz(${(gamma * theta1).toFixed(4)}) $0; rz(${(gamma * theta2).toFixed(4)}) $1; cx $0, $1; cx $1, $2; rx(${(2 * beta).toFixed(4)}) $0; rx(${(2 * beta).toFixed(4)}) $1; rx(${(2 * beta).toFixed(4)}) $2; rx(${(2 * beta).toFixed(4)}) $3; c[0] = measure $0; c[1] = measure $1; c[2] = measure $2; c[3] = measure $3;`;
   } else {
-    // QML (Quantum Machine Learning) circuit for pattern recognition
-    return `
-OPENQASM 3.0;
-include "stdgates.inc";
-qubit[4] q;
-bit[4] c;
-
-// Data encoding layer (amplitude encoding)
-ry(${theta1.toFixed(6)}) q[0];
-ry(${theta2.toFixed(6)}) q[1];
-ry(${theta3.toFixed(6)}) q[2];
-ry(${theta4.toFixed(6)}) q[3];
-
-// Trainable layer 1
-rz(0.785398) q[0];
-rz(1.047198) q[1];
-rz(0.523599) q[2];
-rz(1.570796) q[3];
-
-cx q[0], q[1];
-cx q[2], q[3];
-cx q[1], q[2];
-
-// Trainable layer 2
-ry(0.628318) q[0];
-ry(0.942478) q[1];
-ry(1.256637) q[2];
-ry(0.314159) q[3];
-
-cx q[0], q[3];
-cx q[1], q[2];
-
-// Trainable layer 3
-rz(0.392699) q[0];
-rz(0.785398) q[1];
-rz(1.178097) q[2];
-rz(0.196349) q[3];
-
-// Measurement
-c = measure q;
-`;
+    // QML circuit - IBM Runtime format
+    return `OPENQASM 3.0; include "stdgates.inc"; bit[4] c; ry(${theta1.toFixed(4)}) $0; ry(${theta2.toFixed(4)}) $1; ry(${theta3.toFixed(4)}) $2; ry(${theta4.toFixed(4)}) $3; rz(0.7854) $0; rz(1.0472) $1; cx $0, $1; cx $2, $3; cx $1, $2; ry(0.6283) $0; ry(0.9425) $1; c[0] = measure $0; c[1] = measure $1; c[2] = measure $2; c[3] = measure $3;`;
   }
 }
 
-// Parse quantum measurement results
-function parseQuantumResults(results: any): {
-  probabilities: Record<string, number>;
-  dominantState: string;
-  entropy: number;
-  prediction: {
-    temperatureCorrection: number;
-    precipitationProbability: number;
-    confidence: number;
-  };
-} {
-  // Results from IBM Quantum come as measurement counts
-  const counts = results?.results?.[0]?.data?.c || results?.counts || {};
-  
-  // Calculate probabilities
-  const totalShots = Object.values(counts).reduce((a: number, b: any) => a + (Number(b) || 0), 0) as number;
-  const probabilities: Record<string, number> = {};
-  
-  for (const [state, count] of Object.entries(counts)) {
-    probabilities[state] = (Number(count) || 0) / (totalShots || 1);
-  }
 
-  // Find dominant state
-  const dominantState = Object.entries(probabilities)
-    .sort(([, a], [, b]) => b - a)[0]?.[0] || '0000';
+// Fetch available IBM Quantum backends
+async function getAvailableBackends(bearerToken: string, serviceCRN: string): Promise<string[]> {
+  try {
+    const response = await fetch("https://quantum.cloud.ibm.com/api/v1/backends", {
+      headers: {
+        "Authorization": `Bearer ${bearerToken}`,
+        "Service-CRN": serviceCRN,
+        "IBM-API-Version": "2025-05-01",
+      },
+    });
 
-  // Calculate entropy (measure of uncertainty)
-  let entropy = 0;
-  for (const prob of Object.values(probabilities)) {
-    if (prob > 0) {
-      entropy -= prob * Math.log2(prob);
+    if (response.ok) {
+      const data = await response.json();
+      // Return only simulators and available QPUs
+      return data.devices?.map((d: any) => d.name) || ['ibmq_qasm_simulator'];
     }
+    await response.text();
+    return ['ibmq_qasm_simulator'];
+  } catch {
+    return ['ibmq_qasm_simulator'];
   }
-
-  // Derive weather predictions from quantum state
-  const stateValue = parseInt(dominantState, 2);
-  const temperatureCorrection = ((stateValue / 15) - 0.5) * 4; // -2 to +2°C
-  const precipitationProbability = (entropy / 4) * 100; // Higher entropy = higher uncertainty = precipitation
-  const confidence = Math.max(20, 100 - (entropy * 20));
-
-  return {
-    probabilities,
-    dominantState,
-    entropy: Math.round(entropy * 1000) / 1000,
-    prediction: {
-      temperatureCorrection: Math.round(temperatureCorrection * 100) / 100,
-      precipitationProbability: Math.round(precipitationProbability),
-      confidence: Math.round(confidence),
-    },
-  };
 }
 
 serve(async (req) => {
@@ -219,6 +96,23 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Handle GET request for listing backends
+    if (req.method === 'GET') {
+      if (!IBM_QUANTUM_TOKEN || !IBM_SERVICE_CRN) {
+        return new Response(JSON.stringify({ error: 'IBM credentials not configured' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
+      const bearerToken = await getIBMBearerToken(IBM_QUANTUM_TOKEN);
+      const backends = await getAvailableBackends(bearerToken, IBM_SERVICE_CRN);
+      
+      return new Response(JSON.stringify({ backends }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     const body: QuantumRequest = await req.json();
     const { algorithm, weatherParams, governorateId, shots = 1024 } = body;
@@ -266,9 +160,41 @@ serve(async (req) => {
       });
     }
 
-    // Submit job to IBM Quantum
-    console.log(`Submitting ${algorithm} job to IBM Quantum...`);
+    // Get Bearer Token from API Key
+    console.log('Getting IBM Bearer Token...');
+    let bearerToken: string;
+    try {
+      bearerToken = await getIBMBearerToken(IBM_QUANTUM_TOKEN);
+      console.log('Bearer token obtained successfully');
+    } catch (tokenError) {
+      console.error('Failed to get bearer token:', tokenError);
+      return new Response(JSON.stringify({
+        status: 'auth_failed',
+        error: 'Failed to authenticate with IBM Quantum',
+        details: tokenError instanceof Error ? tokenError.message : 'Unknown error',
+      }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Get available backends and select the best one
+    const availableBackends = await getAvailableBackends(bearerToken, IBM_SERVICE_CRN);
+    console.log('Available backends:', availableBackends);
     
+    // Prefer real QPU, fallback to simulator
+    const preferredBackends = ['ibm_sherbrooke', 'ibm_brisbane', 'ibm_kyiv', 'ibm_quebec', 'ibmq_qasm_simulator'];
+    let selectedBackend = availableBackends[0] || 'ibmq_qasm_simulator';
+    
+    for (const preferred of preferredBackends) {
+      if (availableBackends.includes(preferred)) {
+        selectedBackend = preferred;
+        break;
+      }
+    }
+    
+    console.log('Selected backend:', selectedBackend);
+
     // Create job record first
     const { data: job, error: jobError } = await supabase
       .from('quantum_jobs')
@@ -278,7 +204,7 @@ serve(async (req) => {
         status: 'submitting',
         input_params: weatherParams,
         circuit_qasm: circuit,
-        backend: 'ibm_brisbane',
+        backend: selectedBackend,
         shots,
       })
       .select()
@@ -288,44 +214,56 @@ serve(async (req) => {
       throw new Error(`Failed to create job record: ${jobError.message}`);
     }
 
+    console.log(`Submitting ${algorithm} job to IBM Quantum on ${selectedBackend}...`);
+
     try {
-      // Submit to IBM Quantum Runtime
-      const ibmResponse = await fetch("https://api.quantum-computing.ibm.com/runtime/jobs", {
+      // Submit to IBM Quantum Runtime - Correct API endpoint
+      const ibmResponse = await fetch("https://quantum.cloud.ibm.com/api/v1/jobs", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${IBM_QUANTUM_TOKEN}`,
+          "Authorization": `Bearer ${bearerToken}`,
           "Content-Type": "application/json",
           "Service-CRN": IBM_SERVICE_CRN,
+          "IBM-API-Version": "2025-05-01",
         },
         body: JSON.stringify({
           program_id: "sampler",
-          backend: "ibm_brisbane",
-          hub: "ibm-q",
-          group: "open",
-          project: "main",
+          backend: selectedBackend,
           params: {
             pubs: [[circuit, null, shots]],
           },
         }),
       });
 
+      const responseText = await ibmResponse.text();
+      console.log('IBM Response status:', ibmResponse.status);
+      console.log('IBM Response:', responseText);
+
       if (!ibmResponse.ok) {
-        const errorText = await ibmResponse.text();
-        console.error('IBM Quantum API error:', ibmResponse.status, errorText);
+        console.error('IBM Quantum API error:', ibmResponse.status, responseText);
         
         // Update job status
         await supabase
           .from('quantum_jobs')
           .update({ 
             status: 'failed',
-            result: { error: errorText, status: ibmResponse.status },
+            result: { error: responseText, status: ibmResponse.status },
           })
           .eq('id', job.id);
 
-        throw new Error(`IBM Quantum API error: ${ibmResponse.status} - ${errorText}`);
+        return new Response(JSON.stringify({
+          status: 'ibm_error',
+          error: `IBM Quantum API error: ${ibmResponse.status}`,
+          details: responseText,
+          jobId: job.id,
+          circuit: circuit,
+        }), {
+          status: 200, // Return 200 so we can see the error details
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
 
-      const ibmJob = await ibmResponse.json();
+      const ibmJob = JSON.parse(responseText);
       
       // Update job with IBM job ID
       await supabase
@@ -362,7 +300,15 @@ serve(async (req) => {
         })
         .eq('id', job.id);
 
-      throw ibmError;
+      return new Response(JSON.stringify({
+        status: 'error',
+        error: errorMessage,
+        jobId: job.id,
+        circuit: circuit,
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
   } catch (error: unknown) {

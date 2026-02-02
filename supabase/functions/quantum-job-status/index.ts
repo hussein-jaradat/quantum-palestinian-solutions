@@ -6,6 +6,25 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Get IBM Cloud Bearer Token from API Key
+async function getIBMBearerToken(apiKey: string): Promise<string> {
+  const response = await fetch("https://iam.cloud.ibm.com/identity/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: `grant_type=urn:ibm:params:oauth:grant-type:apikey&apikey=${apiKey}`,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to get IBM bearer token: ${response.status} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data.access_token;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -62,12 +81,16 @@ serve(async (req) => {
     // If we have IBM credentials and IBM job ID, check status with IBM
     if (IBM_QUANTUM_TOKEN && IBM_SERVICE_CRN && job.ibm_job_id) {
       try {
+        // Get bearer token
+        const bearerToken = await getIBMBearerToken(IBM_QUANTUM_TOKEN);
+        
         const statusResponse = await fetch(
-          `https://api.quantum-computing.ibm.com/runtime/jobs/${job.ibm_job_id}`,
+          `https://quantum.cloud.ibm.com/api/v1/jobs/${job.ibm_job_id}`,
           {
             headers: {
-              "Authorization": `Bearer ${IBM_QUANTUM_TOKEN}`,
+              "Authorization": `Bearer ${bearerToken}`,
               "Service-CRN": IBM_SERVICE_CRN,
+              "IBM-API-Version": "2025-05-01",
             },
           }
         );
@@ -81,11 +104,12 @@ serve(async (req) => {
           if (ibmStatus.status === 'Completed') {
             // Fetch results
             const resultsResponse = await fetch(
-              `https://api.quantum-computing.ibm.com/runtime/jobs/${job.ibm_job_id}/results`,
+              `https://quantum.cloud.ibm.com/api/v1/jobs/${job.ibm_job_id}/results`,
               {
                 headers: {
-                  "Authorization": `Bearer ${IBM_QUANTUM_TOKEN}`,
+                  "Authorization": `Bearer ${bearerToken}`,
                   "Service-CRN": IBM_SERVICE_CRN,
+                  "IBM-API-Version": "2025-05-01",
                 },
               }
             );
@@ -107,6 +131,8 @@ serve(async (req) => {
                   completed_at: new Date().toISOString(),
                 })
                 .eq('id', job.id);
+            } else {
+              await resultsResponse.text(); // Consume body
             }
           } else if (ibmStatus.status === 'Failed' || ibmStatus.status === 'Cancelled') {
             newStatus = 'failed';
@@ -141,6 +167,8 @@ serve(async (req) => {
           }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
+        } else {
+          await statusResponse.text(); // Consume body
         }
       } catch (ibmError) {
         console.error('Error checking IBM status:', ibmError);
