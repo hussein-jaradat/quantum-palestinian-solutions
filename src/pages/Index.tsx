@@ -5,10 +5,10 @@ import WeatherNowCard from '@/components/weather/WeatherNowCard';
 import HourlyScroller from '@/components/weather/HourlyScroller';
 import WeekForecastCompact from '@/components/weather/WeekForecastCompact';
 import { GlassCard } from '@/components/ui/GlassCard';
-import { Skeleton } from '@/components/ui/skeleton';
 import { GOVERNORATES } from '@/data/weatherData';
 import { Governorate } from '@/types/weather';
 import { useGovernorateWeather } from '@/hooks/useWeather';
+import { Loader2 } from 'lucide-react';
 
 // Lazy load heavy components
 const QANWPAIPanel = lazy(() => import('@/components/QANWPAIPanel'));
@@ -17,7 +17,6 @@ const SatelliteImageryViewer = lazy(() => import('@/components/SatelliteImageryV
 const WindFlowLayer = lazy(() => import('@/components/WindFlowLayer'));
 const RainfallRadarLayer = lazy(() => import('@/components/RainfallRadarLayer'));
 const SDGsWidget = lazy(() => import('@/components/SDGsWidget'));
-const SmartAlertSystem = lazy(() => import('@/components/SmartAlertSystem'));
 const QuantumWeatherSimulator = lazy(() => import('@/components/QuantumWeatherSimulator'));
 const QuantumBlochSphere = lazy(() => import('@/components/QuantumBlochSphere'));
 const QuantumSpeedupDemo = lazy(() => import('@/components/QuantumSpeedupDemo'));
@@ -34,7 +33,7 @@ const FloodRiskSystem = lazy(() => import('@/components/FloodRiskSystem'));
 const LoadingFallback = () => (
   <GlassCard variant="subtle" className="h-64 flex items-center justify-center">
     <div className="text-center space-y-3">
-      <div className="animate-pulse-soft text-4xl">⏳</div>
+      <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
       <p className="text-muted-foreground text-sm">جاري التحميل...</p>
     </div>
   </GlassCard>
@@ -66,7 +65,7 @@ const Index = () => {
             />
             
             {/* Floating Weather Card */}
-            <div className="absolute bottom-4 left-4 right-4 md:right-auto md:w-96 z-[1000]">
+            <div className="absolute bottom-4 left-4 right-4 md:right-auto md:w-[360px] z-[1000]">
               <div className="space-y-3">
                 <WeatherNowCard
                   weather={data?.weather || null}
@@ -112,7 +111,7 @@ const Index = () => {
                 governorateId={selectedGovernorate.id}
                 governorateName={selectedGovernorate.nameAr}
               />
-              <EnsembleForecast />
+              <EnsembleForecast governorateId={selectedGovernorate.id} />
               <QANWPAIPanel
                 governorateId={selectedGovernorate.id}
                 governorateName={selectedGovernorate.nameAr}
@@ -197,7 +196,14 @@ const Index = () => {
         return (
           <div className="p-4 space-y-4 animate-fade-in">
             <Suspense fallback={<LoadingFallback />}>
-              <QuantumWeatherSimulator />
+              <QuantumWeatherSimulator 
+                governorateId={selectedGovernorate.id}
+                currentWeather={data?.weather ? {
+                  temperature: data.weather.temperature,
+                  humidity: data.weather.humidity,
+                  pressure: 1013,
+                } : undefined}
+              />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <QuantumBlochSphere />
                 <QuantumSpeedupDemo />

@@ -4,8 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  CheckCircle2, XCircle, TrendingUp, TrendingDown, BarChart3,
-  Target, Award, AlertTriangle, RefreshCw, Calendar, Database
+  CheckCircle2, TrendingUp, TrendingDown, BarChart3,
+  Target, Award, AlertTriangle, RefreshCw, Database,
+  Activity
 } from 'lucide-react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, 
@@ -27,7 +28,6 @@ interface ModelScore {
   mae: number;
   rmse: number;
   bias: number;
-  correlation: number;
   skillScore: number;
   sampleCount: number;
 }
@@ -40,6 +40,7 @@ const ValidationDashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [dataSource, setDataSource] = useState<'real' | 'empty'>('empty');
   const [totalValidations, setTotalValidations] = useState(0);
+  const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
 
   const fetchRealValidationData = async () => {
     setIsLoading(true);
@@ -76,6 +77,7 @@ const ValidationDashboard = () => {
 
       setTotalValidations(validations.length);
       setDataSource('real');
+      setLastSyncTime(validations[0]?.validated_at || null);
 
       // Process validation data for charts
       const dailyData: Record<string, { errors: number[]; predicted: number[]; actual: number[] }> = {};
@@ -146,12 +148,10 @@ const ValidationDashboard = () => {
           mae: p.mae_temp || 0,
           rmse: p.rmse_temp || 0,
           bias: p.bias || 0,
-          correlation: 0.85 + (p.skill_score || 0) * 0.1, // Estimate correlation from skill score
           skillScore: p.skill_score || 0,
           sampleCount: p.sample_count || 0,
         }));
 
-        // Sort by MAE (lower is better)
         scores.sort((a, b) => a.mae - b.mae);
         setModelScores(scores);
       }
@@ -166,7 +166,7 @@ const ValidationDashboard = () => {
 
   const getModelDisplayName = (modelName: string): string => {
     const names: Record<string, string> = {
-      'ensemble': 'QANWP-AI Ensemble',
+      'ensemble': 'QANWP Ensemble',
       'open-meteo': 'Open-Meteo IFS',
       'gfs': 'NOAA GFS',
       'icon': 'DWD ICON',
@@ -178,34 +178,37 @@ const ValidationDashboard = () => {
     fetchRealValidationData();
   }, []);
 
-  const getScoreColor = (score: number) => {
-    if (score >= 0.85) return 'text-green-500';
-    if (score >= 0.7) return 'text-yellow-500';
-    return 'text-red-500';
-  };
-
   const getMAEStatus = (mae: number) => {
-    if (mae === 0) return { label: 'لا توجد بيانات', color: 'bg-gray-500', icon: <Database className="h-4 w-4" /> };
-    if (mae <= 1.5) return { label: 'ممتاز', color: 'bg-green-500', icon: <CheckCircle2 className="h-4 w-4" /> };
-    if (mae <= 2.5) return { label: 'جيد', color: 'bg-yellow-500', icon: <TrendingUp className="h-4 w-4" /> };
-    return { label: 'يحتاج تحسين', color: 'bg-red-500', icon: <AlertTriangle className="h-4 w-4" /> };
+    if (mae === 0) return { label: 'لا توجد بيانات', color: 'bg-muted', icon: <Database className="h-4 w-4" /> };
+    if (mae <= 1.5) return { label: 'ممتاز', color: 'bg-accent', icon: <CheckCircle2 className="h-4 w-4" /> };
+    if (mae <= 2.5) return { label: 'جيد', color: 'bg-alert-warning', icon: <TrendingUp className="h-4 w-4" /> };
+    return { label: 'يحتاج تحسين', color: 'bg-destructive', icon: <AlertTriangle className="h-4 w-4" /> };
   };
 
   const maeStatus = getMAEStatus(overallMAE);
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-primary/10">
+    <Card className="overflow-hidden border-border">
+      <CardHeader className="bg-gradient-to-r from-amber-500/5 via-orange-500/5 to-primary/5 border-b">
         <CardTitle className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-2">
-            <Target className="h-5 w-5 text-amber-500" />
-            <span>لوحة التحقق من الدقة (Validation)</span>
-            {dataSource === 'real' && (
-              <Badge variant="outline" className="gap-1 text-green-600 border-green-600">
-                <Database className="h-3 w-3" />
-                بيانات حقيقية
-              </Badge>
-            )}
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+              <Target className="h-5 w-5 text-amber-500" />
+            </div>
+            <div>
+              <span className="font-bold">نظام التحقق من الدقة</span>
+              {dataSource === 'real' && (
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="outline" className="data-badge-success text-[10px]">
+                    <Activity className="h-3 w-3 ml-1" />
+                    بيانات حقيقية
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">
+                    {totalValidations} سجل
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Badge className={`gap-1 ${maeStatus.color} text-white`}>
@@ -227,16 +230,13 @@ const ValidationDashboard = () => {
       </CardHeader>
       <CardContent className="p-4 space-y-6">
         {dataSource === 'empty' && !isLoading && (
-          <div className="p-6 text-center bg-secondary/30 rounded-xl">
+          <div className="p-8 text-center bg-secondary/20 rounded-xl border border-dashed border-border">
             <Database className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="font-semibold mb-2">لا توجد بيانات تحقق بعد</h3>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
               سيتم جمع بيانات التحقق تلقائياً عند تشغيل نظام المزامنة اليومي.
-              يقارن النظام التنبؤات السابقة بالطقس الفعلي لحساب الدقة الحقيقية.
+              يقارن النظام التنبؤات السابقة بالطقس الفعلي لحساب الدقة.
             </p>
-            <Badge variant="secondary">
-              {totalValidations} سجل تحقق
-            </Badge>
           </div>
         )}
 
@@ -244,41 +244,41 @@ const ValidationDashboard = () => {
           <>
             {/* Key Metrics */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="p-4 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-xl border text-center">
-                <div className="text-sm text-muted-foreground mb-1">MAE</div>
-                <div className="text-3xl font-bold text-blue-600">{overallMAE || '--'}°</div>
-                <div className="text-xs text-muted-foreground">متوسط الخطأ المطلق</div>
+              <div className="stat-card text-center">
+                <div className="text-xs text-muted-foreground mb-2">MAE</div>
+                <div className="text-3xl font-bold text-primary">{overallMAE || '--'}°</div>
+                <div className="text-[10px] text-muted-foreground">متوسط الخطأ المطلق</div>
               </div>
-              <div className="p-4 bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-xl border text-center">
-                <div className="text-sm text-muted-foreground mb-1">RMSE</div>
-                <div className="text-3xl font-bold text-purple-600">{overallRMSE || '--'}°</div>
-                <div className="text-xs text-muted-foreground">جذر متوسط مربع الخطأ</div>
+              <div className="stat-card text-center">
+                <div className="text-xs text-muted-foreground mb-2">RMSE</div>
+                <div className="text-3xl font-bold text-purple-500">{overallRMSE || '--'}°</div>
+                <div className="text-[10px] text-muted-foreground">جذر متوسط مربع الخطأ</div>
               </div>
-              <div className="p-4 bg-gradient-to-br from-green-500/10 to-green-500/5 rounded-xl border text-center">
-                <div className="text-sm text-muted-foreground mb-1">سجلات التحقق</div>
-                <div className="text-3xl font-bold text-green-600">{totalValidations}</div>
-                <div className="text-xs text-muted-foreground">من قاعدة البيانات</div>
+              <div className="stat-card text-center">
+                <div className="text-xs text-muted-foreground mb-2">سجلات التحقق</div>
+                <div className="text-3xl font-bold text-accent">{totalValidations}</div>
+                <div className="text-[10px] text-muted-foreground">من قاعدة البيانات</div>
               </div>
-              <div className="p-4 bg-gradient-to-br from-amber-500/10 to-amber-500/5 rounded-xl border text-center">
-                <div className="text-sm text-muted-foreground mb-1">مصدر البيانات</div>
-                <div className="text-lg font-bold text-amber-600">
+              <div className="stat-card text-center">
+                <div className="text-xs text-muted-foreground mb-2">مصدر البيانات</div>
+                <div className="text-lg font-bold text-amber-500">
                   {dataSource === 'real' ? 'حقيقي 100%' : 'في انتظار البيانات'}
                 </div>
-                <div className="text-xs text-muted-foreground">لا أرقام عشوائية</div>
+                <div className="text-[10px] text-muted-foreground">لا أرقام عشوائية</div>
               </div>
             </div>
 
             <Tabs defaultValue="comparison" dir="rtl">
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="comparison" className="gap-1">
+                <TabsTrigger value="comparison" className="gap-1 text-xs">
                   <BarChart3 className="h-4 w-4" />
-                  مقارنة التنبؤ vs الفعلي
+                  <span className="hidden sm:inline">مقارنة</span> التنبؤ vs الفعلي
                 </TabsTrigger>
-                <TabsTrigger value="error" className="gap-1">
+                <TabsTrigger value="error" className="gap-1 text-xs">
                   <TrendingDown className="h-4 w-4" />
                   تتبع الخطأ
                 </TabsTrigger>
-                <TabsTrigger value="models" className="gap-1">
+                <TabsTrigger value="models" className="gap-1 text-xs">
                   <Award className="h-4 w-4" />
                   مقارنة النماذج
                 </TabsTrigger>
@@ -303,7 +303,7 @@ const ValidationDashboard = () => {
                       <Line 
                         type="monotone" 
                         dataKey="predicted" 
-                        stroke="#8b5cf6" 
+                        stroke="hsl(var(--primary))" 
                         strokeWidth={2}
                         dot={false}
                         name="المُتوقَّع"
@@ -311,7 +311,7 @@ const ValidationDashboard = () => {
                       <Line 
                         type="monotone" 
                         dataKey="actual" 
-                        stroke="#22c55e" 
+                        stroke="hsl(var(--accent))" 
                         strokeWidth={2}
                         dot={false}
                         name="الفعلي"
@@ -340,7 +340,7 @@ const ValidationDashboard = () => {
                         {validationData.slice(-14).map((entry, index) => (
                           <Cell 
                             key={`cell-${index}`} 
-                            fill={entry.error > 0 ? '#ef4444' : '#22c55e'} 
+                            fill={entry.error > 0 ? 'hsl(var(--destructive))' : 'hsl(var(--accent))'} 
                           />
                         ))}
                       </Bar>
@@ -365,7 +365,7 @@ const ValidationDashboard = () => {
                       <Line 
                         type="monotone" 
                         dataKey="mae" 
-                        stroke="#3b82f6" 
+                        stroke="hsl(var(--primary))" 
                         strokeWidth={2}
                         dot={false}
                         name="MAE التراكمي"
@@ -373,7 +373,7 @@ const ValidationDashboard = () => {
                       <Line 
                         type="monotone" 
                         dataKey="rmse" 
-                        stroke="#8b5cf6" 
+                        stroke="hsl(270, 50%, 50%)" 
                         strokeWidth={2}
                         dot={false}
                         name="RMSE التراكمي"
@@ -385,7 +385,7 @@ const ValidationDashboard = () => {
 
               <TabsContent value="models" className="mt-4 space-y-4">
                 {modelScores.length === 0 ? (
-                  <div className="p-6 text-center bg-secondary/30 rounded-xl">
+                  <div className="p-8 text-center bg-secondary/20 rounded-xl">
                     <p className="text-muted-foreground">
                       لا توجد بيانات أداء للنماذج بعد. سيتم حسابها تلقائياً بعد تجميع بيانات التحقق.
                     </p>
@@ -395,11 +395,15 @@ const ValidationDashboard = () => {
                     {modelScores.map((model, idx) => (
                       <div 
                         key={model.model}
-                        className={`p-4 rounded-xl border ${idx === 0 ? 'bg-green-500/10 border-green-500/30' : 'bg-secondary/30'}`}
+                        className={`p-4 rounded-xl border transition-all ${
+                          idx === 0 
+                            ? 'bg-accent/5 border-accent/20' 
+                            : 'bg-card hover:bg-secondary/30'
+                        }`}
                       >
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
-                            {idx === 0 && <Award className="h-5 w-5 text-green-500" />}
+                            {idx === 0 && <Award className="h-5 w-5 text-accent" />}
                             <span className="font-semibold">{model.model}</span>
                             <Badge variant="outline" className="text-xs">
                               {model.sampleCount} عينة
@@ -409,32 +413,24 @@ const ValidationDashboard = () => {
                             #{idx + 1}
                           </Badge>
                         </div>
-                        <div className="grid grid-cols-5 gap-4 text-sm">
+                        <div className="grid grid-cols-4 gap-4 text-sm">
                           <div>
-                            <div className="text-muted-foreground">MAE</div>
+                            <div className="text-muted-foreground text-xs">MAE</div>
                             <div className="font-bold">{model.mae.toFixed(2)}°</div>
                           </div>
                           <div>
-                            <div className="text-muted-foreground">RMSE</div>
+                            <div className="text-muted-foreground text-xs">RMSE</div>
                             <div className="font-bold">{model.rmse.toFixed(2)}°</div>
                           </div>
                           <div>
-                            <div className="text-muted-foreground">Bias</div>
-                            <div className={`font-bold ${model.bias > 0 ? 'text-red-500' : 'text-blue-500'}`}>
+                            <div className="text-muted-foreground text-xs">الانحياز</div>
+                            <div className={`font-bold ${model.bias > 0 ? 'text-destructive' : 'text-accent'}`}>
                               {model.bias > 0 ? '+' : ''}{model.bias.toFixed(2)}°
                             </div>
                           </div>
                           <div>
-                            <div className="text-muted-foreground">Correlation</div>
-                            <div className={`font-bold ${getScoreColor(model.correlation)}`}>
-                              {model.correlation.toFixed(2)}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground">Skill</div>
-                            <div className={`font-bold ${getScoreColor(model.skillScore)}`}>
-                              {Math.round(model.skillScore * 100)}%
-                            </div>
+                            <div className="text-muted-foreground text-xs">Skill Score</div>
+                            <div className="font-bold">{(model.skillScore * 100).toFixed(0)}%</div>
                           </div>
                         </div>
                       </div>
@@ -445,40 +441,6 @@ const ValidationDashboard = () => {
             </Tabs>
           </>
         )}
-
-        {/* Legend/Explanation */}
-        <div className="p-4 bg-secondary/30 rounded-xl">
-          <h4 className="font-semibold mb-3 flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            شرح المقاييس (من بيانات حقيقية)
-          </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-            <div>
-              <span className="font-medium">MAE (متوسط الخطأ المطلق):</span>
-              <span className="text-muted-foreground mr-1">
-                محسوب من مقارنة التنبؤات بالطقس الفعلي
-              </span>
-            </div>
-            <div>
-              <span className="font-medium">RMSE:</span>
-              <span className="text-muted-foreground mr-1">
-                يعاقب الأخطاء الكبيرة - محسوب رياضياً
-              </span>
-            </div>
-            <div>
-              <span className="font-medium">Bias (الانحياز):</span>
-              <span className="text-muted-foreground mr-1">
-                متوسط الفرق (+ = مبالغة، - = تقليل)
-              </span>
-            </div>
-            <div>
-              <span className="font-medium">Skill Score:</span>
-              <span className="text-muted-foreground mr-1">
-                مقارنة بنموذج مرجعي = 1 - (RMSE/3°C)
-              </span>
-            </div>
-          </div>
-        </div>
       </CardContent>
     </Card>
   );

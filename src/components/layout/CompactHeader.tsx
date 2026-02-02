@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Moon, Sun, Bell, Menu, Search, X } from 'lucide-react';
+import { Moon, Sun, Bell, Menu, Activity, Settings, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
@@ -12,8 +11,6 @@ interface CompactHeaderProps {
 
 const CompactHeader = ({ onMenuToggle, isSidebarOpen }: CompactHeaderProps) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -32,61 +29,57 @@ const CompactHeader = ({ onMenuToggle, isSidebarOpen }: CompactHeaderProps) => {
   };
 
   return (
-    <header className="compact-header flex items-center justify-between px-4 border-b border-border/50">
+    <header className="compact-header flex items-center justify-between px-4">
       {/* Left Section - Logo & Menu */}
       <div className="flex items-center gap-3">
         <Button
           variant="ghost"
           size="icon"
           onClick={onMenuToggle}
-          className="h-8 w-8 rounded-lg"
+          className="h-9 w-9 hover:bg-primary/10"
         >
           {isSidebarOpen ? <X size={18} /> : <Menu size={18} />}
         </Button>
-
+        
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-palestine flex items-center justify-center">
-            <span className="text-white text-xs font-bold">Q</span>
+          {/* QANWP Logo */}
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+            <span className="text-white font-bold text-sm">Q</span>
           </div>
-          <span className="font-bold text-sm hidden sm:block">QANWP</span>
+          <div className="hidden sm:block">
+            <h1 className="text-sm font-bold leading-tight">QANWP</h1>
+            <p className="text-[10px] text-muted-foreground leading-tight">
+              نظام التنبؤ الجوي الكمومي
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Center Section - Search */}
-      <div className="flex-1 max-w-md mx-4">
-        {isSearchOpen ? (
-          <div className="relative animate-fade-in">
-            <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="ابحث عن موقع..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 pr-9 pl-8 text-sm bg-secondary/50 border-transparent focus:border-primary/30"
-              autoFocus
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute left-1 top-1/2 -translate-y-1/2 h-6 w-6"
-              onClick={() => {
-                setIsSearchOpen(false);
-                setSearchQuery('');
-              }}
-            >
-              <X size={14} />
-            </Button>
-          </div>
-        ) : (
-          <Button
-            variant="ghost"
-            className="w-full h-8 justify-start gap-2 text-muted-foreground hover:text-foreground bg-secondary/30 hover:bg-secondary/50"
-            onClick={() => setIsSearchOpen(true)}
-          >
-            <Search size={14} />
-            <span className="text-sm hidden sm:inline">ابحث عن موقع...</span>
-          </Button>
-        )}
+      {/* Center Section - Status */}
+      <div className="hidden md:flex items-center gap-3">
+        <Badge 
+          variant="outline" 
+          className={cn(
+            "gap-1.5 h-7 px-3 text-xs font-medium",
+            "bg-accent/10 text-accent border-accent/20"
+          )}
+        >
+          <Activity size={12} className="animate-pulse" />
+          <span>نظام حي</span>
+        </Badge>
+        
+        <Badge 
+          variant="outline" 
+          className="gap-1.5 h-7 px-3 text-xs font-medium"
+        >
+          <span>آخر تحديث:</span>
+          <span className="font-mono">
+            {new Date().toLocaleTimeString('ar-PS', { 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            })}
+          </span>
+        </Badge>
       </div>
 
       {/* Right Section - Actions */}
@@ -94,24 +87,27 @@ const CompactHeader = ({ onMenuToggle, isSidebarOpen }: CompactHeaderProps) => {
         <Button
           variant="ghost"
           size="icon"
-          onClick={toggleDarkMode}
-          className="h-8 w-8 rounded-lg"
+          className="h-9 w-9 hover:bg-primary/10 relative"
         >
-          {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+          <Bell size={18} />
+          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive animate-pulse" />
         </Button>
         
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-8 w-8 rounded-lg relative"
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleDarkMode}
+          className="h-9 w-9 hover:bg-primary/10"
         >
-          <Bell size={16} />
-          <Badge 
-            variant="destructive" 
-            className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px]"
-          >
-            2
-          </Badge>
+          {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+        </Button>
+        
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 hover:bg-primary/10"
+        >
+          <Settings size={18} />
         </Button>
       </div>
     </header>
