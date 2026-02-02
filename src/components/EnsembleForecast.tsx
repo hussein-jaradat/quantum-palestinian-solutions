@@ -5,21 +5,21 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Layers, RefreshCw, TrendingUp, BarChart3, Percent,
-  Thermometer, CloudRain, Wind, CheckCircle2
+  Thermometer, CloudRain, CheckCircle2, Database, AlertCircle
 } from 'lucide-react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, 
-  ResponsiveContainer, Legend, Area, AreaChart, ComposedChart, Bar
+  ResponsiveContainer, Legend, Area, ComposedChart, Bar
 } from 'recharts';
+import { supabase } from '@/integrations/supabase/client';
+import { GOVERNORATES } from '@/data/weatherData';
 
-interface ModelForecast {
-  model: string;
+interface ModelInfo {
   name: string;
   color: string;
   weight: number;
-  temperature: number[];
-  precipitation: number[];
   confidence: number;
+  source: string;
 }
 
 interface EnsembleData {
@@ -35,102 +35,91 @@ interface EnsembleData {
   precipGfs: number;
   precipIcon: number;
   precipEnsemble: number;
+  confidence: number;
 }
 
-const EnsembleForecast = () => {
+interface EnsembleForecastProps {
+  governorateId?: string;
+}
+
+const EnsembleForecast = ({ governorateId = 'ramallah' }: EnsembleForecastProps) => {
   const [data, setData] = useState<EnsembleData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [models, setModels] = useState<ModelForecast[]>([]);
+  const [models, setModels] = useState<ModelInfo[]>([]);
   const [ensembleAccuracy, setEnsembleAccuracy] = useState(0);
+  const [dataSource, setDataSource] = useState<'api' | 'error'>('api');
+  const [weightsSource, setWeightsSource] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
 
-  const generateEnsembleData = () => {
+  const fetchRealEnsembleData = async () => {
     setIsLoading(true);
+    setError(null);
     
-    setTimeout(() => {
-      const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-      const now = new Date();
-      const ensembleData: EnsembleData[] = [];
-      
-      let baseTemp = 18 + Math.random() * 8;
-      
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(now.getTime() + i * 24 * 60 * 60 * 1000);
-        const dayName = days[date.getDay()];
-        
-        // Simulate different model outputs
-        const openMeteoTemp = baseTemp + (Math.random() - 0.5) * 4;
-        const gfsTemp = baseTemp + (Math.random() - 0.5) * 5;
-        const iconTemp = baseTemp + (Math.random() - 0.5) * 3;
-        
-        // Weighted ensemble average
-        const weights = { openMeteo: 0.4, gfs: 0.35, icon: 0.25 };
-        const ensembleTemp = (openMeteoTemp * weights.openMeteo + gfsTemp * weights.gfs + iconTemp * weights.icon);
-        
-        // Precipitation
-        const openMeteoPrecip = Math.max(0, Math.random() * 10 - 5);
-        const gfsPrecip = Math.max(0, Math.random() * 12 - 6);
-        const iconPrecip = Math.max(0, Math.random() * 8 - 4);
-        const ensemblePrecip = (openMeteoPrecip * weights.openMeteo + gfsPrecip * weights.gfs + iconPrecip * weights.icon);
-        
-        ensembleData.push({
-          day: dayName,
-          date: `${date.getDate()}/${date.getMonth() + 1}`,
-          openMeteo: Math.round(openMeteoTemp * 10) / 10,
-          gfs: Math.round(gfsTemp * 10) / 10,
-          icon: Math.round(iconTemp * 10) / 10,
-          ensemble: Math.round(ensembleTemp * 10) / 10,
-          ensembleMin: Math.round((ensembleTemp - 2) * 10) / 10,
-          ensembleMax: Math.round((ensembleTemp + 2) * 10) / 10,
-          precipOpenMeteo: Math.round(openMeteoPrecip * 10) / 10,
-          precipGfs: Math.round(gfsPrecip * 10) / 10,
-          precipIcon: Math.round(iconPrecip * 10) / 10,
-          precipEnsemble: Math.round(ensemblePrecip * 10) / 10,
-        });
-        
-        baseTemp += (Math.random() - 0.5) * 3;
+    try {
+      const gov = GOVERNORATES.find(g => g.id === governorateId);
+      if (!gov) {
+        throw new Error('Governorate not found');
       }
-      
+
+      const { data: response, error: fetchError } = await supabase.functions.invoke('ensemble-forecast', {
+        body: {
+          governorateId,
+          lat: gov.coordinates.lat,
+          lng: gov.coordinates.lng,
+          days: 7,
+        },
+      });
+
+      if (fetchError) throw fetchError;
+
+      if (!response || !response.dailyForecast) {
+        throw new Error('Invalid response from ensemble-forecast');
+      }
+
+      // Transform API response to component format
+      const ensembleData: EnsembleData[] = response.dailyForecast.map((day: any) => ({
+        day: day.dayName,
+        date: new Date(day.date).toLocaleDateString('ar-PS', { day: 'numeric', month: 'numeric' }),
+        openMeteo: day.temperature.openMeteo,
+        gfs: day.temperature.gfs,
+        icon: day.temperature.icon,
+        ensemble: day.temperature.ensemble,
+        ensembleMin: day.temperature.min,
+        ensembleMax: day.temperature.max,
+        precipOpenMeteo: day.precipitation.openMeteo,
+        precipGfs: day.precipitation.gfs,
+        precipIcon: day.precipitation.icon,
+        precipEnsemble: day.precipitation.ensemble,
+        confidence: day.confidence,
+      }));
+
       setData(ensembleData);
-      
-      // Model info
-      setModels([
-        {
-          model: 'open-meteo',
-          name: 'Open-Meteo',
-          color: '#3b82f6',
-          weight: 40,
-          temperature: ensembleData.map(d => d.openMeteo),
-          precipitation: ensembleData.map(d => d.precipOpenMeteo),
-          confidence: 85 + Math.random() * 10,
-        },
-        {
-          model: 'gfs',
-          name: 'NOAA GFS',
-          color: '#22c55e',
-          weight: 35,
-          temperature: ensembleData.map(d => d.gfs),
-          precipitation: ensembleData.map(d => d.precipGfs),
-          confidence: 82 + Math.random() * 10,
-        },
-        {
-          model: 'icon',
-          name: 'DWD ICON',
-          color: '#f59e0b',
-          weight: 25,
-          temperature: ensembleData.map(d => d.icon),
-          precipitation: ensembleData.map(d => d.precipIcon),
-          confidence: 80 + Math.random() * 10,
-        },
-      ]);
-      
-      setEnsembleAccuracy(88 + Math.random() * 8);
+      setDataSource('api');
+
+      // Set model info from response
+      setModels(response.models.map((m: any) => ({
+        name: m.name,
+        color: m.name.includes('Open') ? '#3b82f6' : m.name.includes('GFS') ? '#22c55e' : '#f59e0b',
+        weight: m.weight,
+        confidence: 85 + m.weight * 0.15, // Estimate confidence from weight
+        source: m.source,
+      })));
+
+      setEnsembleAccuracy(response.summary.avgConfidence);
+      setWeightsSource(response.summary.weightsSource || 'Dynamic');
+
+    } catch (err) {
+      console.error('Error fetching ensemble data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch ensemble data');
+      setDataSource('error');
+    } finally {
       setIsLoading(false);
-    }, 1200);
+    }
   };
 
   useEffect(() => {
-    generateEnsembleData();
-  }, []);
+    fetchRealEnsembleData();
+  }, [governorateId]);
 
   return (
     <Card className="overflow-hidden">
@@ -139,20 +128,24 @@ const EnsembleForecast = () => {
           <div className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-green-500" />
             <span>التنبؤ المُجمَّع (Ensemble Forecasting)</span>
+            <Badge variant="outline" className="gap-1 text-green-600 border-green-600">
+              <Database className="h-3 w-3" />
+              بيانات حقيقية
+            </Badge>
           </div>
           <div className="flex items-center gap-2">
             <Badge className="gap-1 bg-green-500/20 text-green-700 dark:text-green-300 border-green-500/30">
               <CheckCircle2 className="h-3 w-3" />
-              {models.length} نماذج
+              {models.length} نماذج عالمية
             </Badge>
             <Badge variant="outline" className="gap-1">
               <Percent className="h-3 w-3" />
-              دقة {Math.round(ensembleAccuracy)}%
+              ثقة {Math.round(ensembleAccuracy)}%
             </Badge>
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={generateEnsembleData}
+              onClick={fetchRealEnsembleData}
               disabled={isLoading}
               className="gap-1"
             >
@@ -163,11 +156,21 @@ const EnsembleForecast = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4 space-y-6">
-        {/* Model Weights */}
+        {error && (
+          <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
+            <div className="flex items-center gap-2 text-red-600">
+              <AlertCircle className="h-5 w-5" />
+              <span className="font-medium">خطأ في جلب البيانات</span>
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">{error}</p>
+          </div>
+        )}
+
+        {/* Model Weights - Real from API */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {models.map((model) => (
             <div 
-              key={model.model}
+              key={model.name}
               className="p-4 rounded-xl border"
               style={{ borderColor: `${model.color}50`, background: `${model.color}10` }}
             >
@@ -177,8 +180,8 @@ const EnsembleForecast = () => {
               </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between text-muted-foreground">
-                  <span>الثقة:</span>
-                  <span className="font-medium">{Math.round(model.confidence)}%</span>
+                  <span>المصدر:</span>
+                  <span className="font-medium text-xs">{model.source}</span>
                 </div>
                 <div 
                   className="h-2 rounded-full bg-secondary"
@@ -195,6 +198,15 @@ const EnsembleForecast = () => {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Weights Source Indicator */}
+        <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg text-sm">
+          <span className="font-medium">مصدر الأوزان: </span>
+          <span className="text-muted-foreground">{weightsSource}</span>
+          <span className="text-xs text-muted-foreground mr-2">
+            (تتغير تلقائياً بناءً على أداء كل نموذج)
+          </span>
         </div>
 
         <Tabs defaultValue="temperature" dir="rtl">
@@ -223,6 +235,10 @@ const EnsembleForecast = () => {
                       borderRadius: '8px',
                       direction: 'rtl'
                     }}
+                    formatter={(value: number, name: string) => [
+                      `${value}°C`,
+                      name === 'ensemble' ? 'المُجمَّع' : name
+                    ]}
                   />
                   <Legend />
                   
@@ -284,7 +300,7 @@ const EnsembleForecast = () => {
             <div className="p-3 bg-purple-500/10 border border-purple-500/30 rounded-xl">
               <p className="text-sm">
                 <span className="font-semibold">💡 الخط البنفسجي السميك</span> يمثل التنبؤ المُجمَّع (Ensemble) 
-                الذي يجمع بين 3 نماذج عالمية بأوزان ذكية للحصول على أفضل دقة.
+                المحسوب من {models.length} نماذج عالمية حقيقية بأوزان ديناميكية تتغير حسب الأداء.
               </p>
             </div>
           </TabsContent>
@@ -343,46 +359,48 @@ const EnsembleForecast = () => {
         <div className="p-4 bg-secondary/30 rounded-xl space-y-3">
           <h4 className="font-semibold flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
-            كيف يعمل التجميع (Ensemble)؟
+            كيف يعمل التجميع (Ensemble) الحقيقي؟
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div className="p-3 bg-background rounded-lg">
-              <div className="font-medium mb-1">1️⃣ جمع البيانات</div>
+              <div className="font-medium mb-1">1️⃣ جمع البيانات الحقيقية</div>
               <p className="text-muted-foreground text-xs">
-                نجمع توقعات من 3+ نماذج عالمية مختلفة
+                نجمع توقعات من ECMWF IFS، NOAA GFS، و DWD ICON عبر APIs حقيقية
               </p>
             </div>
             <div className="p-3 bg-background rounded-lg">
-              <div className="font-medium mb-1">2️⃣ الترجيح الذكي</div>
+              <div className="font-medium mb-1">2️⃣ الترجيح الديناميكي</div>
               <p className="text-muted-foreground text-xs">
-                نعطي أوزان أعلى للنماذج الأكثر دقة تاريخياً
+                الأوزان تتغير بناءً على MAE الفعلي لكل نموذج من نظام التحقق
               </p>
             </div>
             <div className="p-3 bg-background rounded-lg">
               <div className="font-medium mb-1">3️⃣ حساب عدم اليقين</div>
               <p className="text-muted-foreground text-xs">
-                نحسب نطاق الثقة من تباين النماذج
+                نطاق الثقة محسوب من الفرق الفعلي بين توقعات النماذج
               </p>
             </div>
           </div>
         </div>
 
-        {/* Improvement Stats */}
+        {/* Real Data Stats */}
         <div className="grid grid-cols-3 gap-4">
           <div className="p-4 bg-green-500/10 rounded-xl text-center">
             <TrendingUp className="h-6 w-6 text-green-500 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-green-600">+15%</div>
-            <div className="text-xs text-muted-foreground">تحسن بالدقة</div>
+            <div className="text-2xl font-bold text-green-600">
+              {weightsSource.includes('Dynamic') ? 'ديناميكي' : 'ثابت'}
+            </div>
+            <div className="text-xs text-muted-foreground">نظام الأوزان</div>
           </div>
           <div className="p-4 bg-blue-500/10 rounded-xl text-center">
             <Layers className="h-6 w-6 text-blue-500 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-blue-600">3</div>
-            <div className="text-xs text-muted-foreground">نماذج مُدمجة</div>
+            <div className="text-2xl font-bold text-blue-600">{models.length}</div>
+            <div className="text-xs text-muted-foreground">نماذج عالمية حقيقية</div>
           </div>
           <div className="p-4 bg-purple-500/10 rounded-xl text-center">
             <CheckCircle2 className="h-6 w-6 text-purple-500 mx-auto mb-2" />
             <div className="text-2xl font-bold text-purple-600">{Math.round(ensembleAccuracy)}%</div>
-            <div className="text-xs text-muted-foreground">دقة المُجمَّع</div>
+            <div className="text-xs text-muted-foreground">ثقة المُجمَّع</div>
           </div>
         </div>
       </CardContent>

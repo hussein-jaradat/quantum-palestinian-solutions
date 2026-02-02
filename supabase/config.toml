@@ -11,3 +11,21 @@ verify_jwt = false
 
 [functions.satellite-imagery]
 verify_jwt = false
+
+[functions.nowcasting]
+verify_jwt = false
+
+[functions.ensemble-forecast]
+verify_jwt = false
+
+[functions.validation-engine]
+verify_jwt = false
+
+[functions.quantum-processor]
+verify_jwt = false
+
+[functions.quantum-job-status]
+verify_jwt = false
+
+[functions.daily-sync]
+verify_jwt = false

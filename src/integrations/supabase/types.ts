@@ -83,6 +83,48 @@ export type Database = {
         }
         Relationships: []
       }
+      data_sync_logs: {
+        Row: {
+          created_at: string | null
+          duration_ms: number | null
+          end_date: string | null
+          error_message: string | null
+          governorate_id: string | null
+          id: string
+          metadata: Json | null
+          records_synced: number | null
+          start_date: string | null
+          status: string | null
+          sync_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          duration_ms?: number | null
+          end_date?: string | null
+          error_message?: string | null
+          governorate_id?: string | null
+          id?: string
+          metadata?: Json | null
+          records_synced?: number | null
+          start_date?: string | null
+          status?: string | null
+          sync_type: string
+        }
+        Update: {
+          created_at?: string | null
+          duration_ms?: number | null
+          end_date?: string | null
+          error_message?: string | null
+          governorate_id?: string | null
+          id?: string
+          metadata?: Json | null
+          records_synced?: number | null
+          start_date?: string | null
+          status?: string | null
+          sync_type?: string
+        }
+        Relationships: []
+      }
       historical_weather_data: {
         Row: {
           created_at: string
@@ -121,6 +163,236 @@ export type Database = {
           temperature_max?: number | null
           temperature_min?: number | null
           weather_code?: number | null
+          wind_speed?: number | null
+        }
+        Relationships: []
+      }
+      model_performance: {
+        Row: {
+          bias: number | null
+          calculated_weight: number | null
+          correlation: number | null
+          created_at: string | null
+          governorate_id: string | null
+          id: string
+          mae_precip: number | null
+          mae_temp: number | null
+          model_name: string
+          period_end: string
+          period_start: string
+          rmse_precip: number | null
+          rmse_temp: number | null
+          sample_count: number | null
+          skill_score: number | null
+        }
+        Insert: {
+          bias?: number | null
+          calculated_weight?: number | null
+          correlation?: number | null
+          created_at?: string | null
+          governorate_id?: string | null
+          id?: string
+          mae_precip?: number | null
+          mae_temp?: number | null
+          model_name: string
+          period_end: string
+          period_start: string
+          rmse_precip?: number | null
+          rmse_temp?: number | null
+          sample_count?: number | null
+          skill_score?: number | null
+        }
+        Update: {
+          bias?: number | null
+          calculated_weight?: number | null
+          correlation?: number | null
+          created_at?: string | null
+          governorate_id?: string | null
+          id?: string
+          mae_precip?: number | null
+          mae_temp?: number | null
+          model_name?: string
+          period_end?: string
+          period_start?: string
+          rmse_precip?: number | null
+          rmse_temp?: number | null
+          sample_count?: number | null
+          skill_score?: number | null
+        }
+        Relationships: []
+      }
+      prediction_validations: {
+        Row: {
+          abs_error_temp: number | null
+          actual_humidity: number | null
+          actual_precipitation: number | null
+          actual_temp_avg: number | null
+          actual_temp_max: number | null
+          actual_temp_min: number | null
+          actual_wind_speed: number | null
+          error_precipitation: number | null
+          error_temp_avg: number | null
+          error_temp_max: number | null
+          error_temp_min: number | null
+          id: string
+          prediction_id: string | null
+          squared_error_temp: number | null
+          validated_at: string | null
+        }
+        Insert: {
+          abs_error_temp?: number | null
+          actual_humidity?: number | null
+          actual_precipitation?: number | null
+          actual_temp_avg?: number | null
+          actual_temp_max?: number | null
+          actual_temp_min?: number | null
+          actual_wind_speed?: number | null
+          error_precipitation?: number | null
+          error_temp_avg?: number | null
+          error_temp_max?: number | null
+          error_temp_min?: number | null
+          id?: string
+          prediction_id?: string | null
+          squared_error_temp?: number | null
+          validated_at?: string | null
+        }
+        Update: {
+          abs_error_temp?: number | null
+          actual_humidity?: number | null
+          actual_precipitation?: number | null
+          actual_temp_avg?: number | null
+          actual_temp_max?: number | null
+          actual_temp_min?: number | null
+          actual_wind_speed?: number | null
+          error_precipitation?: number | null
+          error_temp_avg?: number | null
+          error_temp_max?: number | null
+          error_temp_min?: number | null
+          id?: string
+          prediction_id?: string | null
+          squared_error_temp?: number | null
+          validated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prediction_validations_prediction_id_fkey"
+            columns: ["prediction_id"]
+            isOneToOne: false
+            referencedRelation: "weather_predictions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quantum_jobs: {
+        Row: {
+          algorithm: string
+          backend: string | null
+          circuit_qasm: string | null
+          circuit_type: string
+          completed_at: string | null
+          created_at: string | null
+          execution_time_ms: number | null
+          ibm_job_id: string | null
+          id: string
+          input_params: Json | null
+          queue_position: number | null
+          result: Json | null
+          shots: number | null
+          started_at: string | null
+          status: string | null
+        }
+        Insert: {
+          algorithm: string
+          backend?: string | null
+          circuit_qasm?: string | null
+          circuit_type: string
+          completed_at?: string | null
+          created_at?: string | null
+          execution_time_ms?: number | null
+          ibm_job_id?: string | null
+          id?: string
+          input_params?: Json | null
+          queue_position?: number | null
+          result?: Json | null
+          shots?: number | null
+          started_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          algorithm?: string
+          backend?: string | null
+          circuit_qasm?: string | null
+          circuit_type?: string
+          completed_at?: string | null
+          created_at?: string | null
+          execution_time_ms?: number | null
+          ibm_job_id?: string | null
+          id?: string
+          input_params?: Json | null
+          queue_position?: number | null
+          result?: Json | null
+          shots?: number | null
+          started_at?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      weather_predictions: {
+        Row: {
+          confidence: number | null
+          created_at: string | null
+          governorate_id: string
+          humidity: number | null
+          id: string
+          model_name: string
+          model_weights: Json | null
+          precipitation: number | null
+          prediction_date: string
+          raw_data: Json | null
+          target_date: string
+          target_hour: number | null
+          temp_avg: number | null
+          temp_max: number | null
+          temp_min: number | null
+          wind_direction: number | null
+          wind_speed: number | null
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string | null
+          governorate_id: string
+          humidity?: number | null
+          id?: string
+          model_name: string
+          model_weights?: Json | null
+          precipitation?: number | null
+          prediction_date: string
+          raw_data?: Json | null
+          target_date: string
+          target_hour?: number | null
+          temp_avg?: number | null
+          temp_max?: number | null
+          temp_min?: number | null
+          wind_direction?: number | null
+          wind_speed?: number | null
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string | null
+          governorate_id?: string
+          humidity?: number | null
+          id?: string
+          model_name?: string
+          model_weights?: Json | null
+          precipitation?: number | null
+          prediction_date?: string
+          raw_data?: Json | null
+          target_date?: string
+          target_hour?: number | null
+          temp_avg?: number | null
+          temp_max?: number | null
+          temp_min?: number | null
+          wind_direction?: number | null
           wind_speed?: number | null
         }
         Relationships: []
