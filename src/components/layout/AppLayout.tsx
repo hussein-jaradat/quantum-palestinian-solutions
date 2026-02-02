@@ -47,8 +47,8 @@ const AppLayout = ({
       {/* Main Content */}
       <main
         className={cn(
-          "pt-[48px] min-h-screen transition-all duration-300",
-          isSidebarOpen ? "pr-[320px]" : "pr-[60px]"
+          "pt-[52px] min-h-screen transition-all duration-300",
+          isSidebarOpen ? "pr-[300px]" : "pr-[64px]"
         )}
       >
         {children}

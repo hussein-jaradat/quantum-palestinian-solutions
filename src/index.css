@@ -2,13 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-/* QANWP Design System v2.0
+/* QANWP Design System v3.0
    Quantum-Augmented Numerical Weather Prediction
    نظام التنبؤ العددي المعزز بالحوسبة الكمية
-   Professional Palestinian Weather Platform
+   Professional Palestinian Weather Platform - Inspired by Windy/Meteoblue
 */
 
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
 /* ===== Leaflet Custom Styles ===== */
 .leaflet-container {
@@ -17,10 +17,12 @@
 }
 
 .leaflet-popup-content-wrapper {
-  border-radius: 16px !important;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
   padding: 0 !important;
   overflow: hidden;
+  background: hsl(var(--card) / 0.95) !important;
+  backdrop-filter: blur(12px);
 }
 
 .leaflet-popup-content {
@@ -29,165 +31,159 @@
 }
 
 .leaflet-popup-tip {
-  background: white !important;
-}
-
-.dark .leaflet-popup-content-wrapper {
-  background: hsl(var(--card)) !important;
-  color: hsl(var(--card-foreground)) !important;
-}
-
-.dark .leaflet-popup-tip {
-  background: hsl(var(--card)) !important;
-}
-
-.custom-temp-marker {
-  background: transparent !important;
-  border: none !important;
+  background: hsl(var(--card) / 0.95) !important;
 }
 
 .leaflet-control-zoom {
   border: none !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
 }
 
 .leaflet-control-zoom a {
-  background: hsl(var(--background)) !important;
+  background: hsl(var(--background) / 0.9) !important;
   color: hsl(var(--foreground)) !important;
-  border: 1px solid hsl(var(--border)) !important;
+  border: none !important;
+  backdrop-filter: blur(8px);
 }
 
 .leaflet-control-zoom a:hover {
-  background: hsl(var(--secondary)) !important;
+  background: hsl(var(--primary)) !important;
+  color: white !important;
 }
 
 .leaflet-control-attribution {
-  background: hsl(var(--background) / 0.8) !important;
+  background: hsl(var(--background) / 0.7) !important;
   color: hsl(var(--muted-foreground)) !important;
-  font-size: 10px !important;
+  font-size: 9px !important;
+  backdrop-filter: blur(4px);
 }
 
 @layer base {
   :root {
     /* ===== Palestinian Identity Colors ===== */
-    --palestine-black: 0 0% 10%;
+    --palestine-black: 0 0% 8%;
     --palestine-white: 0 0% 98%;
-    --palestine-green: 145 63% 42%;
-    --palestine-red: 0 70% 50%;
-    --palestine-gold: 45 93% 47%;
+    --palestine-green: 152 70% 38%;
+    --palestine-red: 0 72% 52%;
+    --palestine-gold: 43 96% 50%;
     
     /* ===== Weather Semantic Colors ===== */
-    --weather-sunny: 45 93% 47%;
-    --weather-cloudy: 220 14% 71%;
-    --weather-rainy: 210 79% 46%;
-    --weather-stormy: 270 50% 40%;
-    --weather-snowy: 200 19% 95%;
+    --weather-sunny: 43 96% 50%;
+    --weather-cloudy: 215 20% 65%;
+    --weather-rainy: 205 85% 50%;
+    --weather-stormy: 265 55% 45%;
+    --weather-snowy: 200 30% 95%;
+    --weather-foggy: 200 15% 70%;
     
     /* ===== Temperature Gradient ===== */
-    --temp-hot: 0 80% 50%;
-    --temp-warm: 30 90% 50%;
-    --temp-mild: 60 70% 45%;
-    --temp-cool: 180 60% 45%;
-    --temp-cold: 210 80% 50%;
-    --temp-freezing: 200 90% 60%;
+    --temp-freezing: 200 90% 55%;
+    --temp-cold: 195 85% 50%;
+    --temp-cool: 175 65% 45%;
+    --temp-mild: 80 55% 50%;
+    --temp-warm: 35 90% 50%;
+    --temp-hot: 15 85% 50%;
+    --temp-extreme: 0 75% 45%;
     
     /* ===== Alert Levels ===== */
-    --alert-safe: 145 63% 42%;
-    --alert-warning: 45 93% 47%;
-    --alert-danger: 0 70% 50%;
+    --alert-safe: 152 70% 40%;
+    --alert-warning: 43 96% 50%;
+    --alert-danger: 0 72% 52%;
+    --alert-critical: 280 70% 50%;
     
-    /* ===== Base Theme - Light (Glassmorphism) ===== */
-    --background: 220 25% 97%;
-    --foreground: 220 25% 10%;
+    /* ===== Base Theme - Light (Professional Weather) ===== */
+    --background: 215 30% 97%;
+    --foreground: 215 30% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 25% 10%;
+    --card-foreground: 215 30% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 10%;
+    --popover-foreground: 215 30% 12%;
 
-    --primary: 215 75% 30%;
-    --primary-foreground: 0 0% 98%;
-    --primary-light: 215 70% 50%;
+    --primary: 205 85% 45%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 205 80% 55%;
 
-    --secondary: 220 20% 94%;
-    --secondary-foreground: 220 25% 10%;
+    --secondary: 215 25% 92%;
+    --secondary-foreground: 215 30% 12%;
 
-    --muted: 220 20% 94%;
-    --muted-foreground: 220 15% 45%;
+    --muted: 215 20% 92%;
+    --muted-foreground: 215 15% 50%;
 
-    --accent: 145 63% 42%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 152 70% 40%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 72% 52%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 88%;
-    --input: 220 20% 88%;
-    --ring: 215 75% 30%;
+    --border: 215 20% 88%;
+    --input: 215 20% 88%;
+    --ring: 205 85% 45%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
     /* ===== Sidebar ===== */
-    --sidebar-background: 220 25% 98%;
-    --sidebar-foreground: 220 25% 10%;
-    --sidebar-primary: 215 75% 30%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 220 20% 94%;
-    --sidebar-accent-foreground: 220 25% 10%;
-    --sidebar-border: 220 20% 88%;
-    --sidebar-ring: 215 75% 30%;
+    --sidebar-background: 215 30% 98%;
+    --sidebar-foreground: 215 30% 12%;
+    --sidebar-primary: 205 85% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 25% 94%;
+    --sidebar-accent-foreground: 215 30% 12%;
+    --sidebar-border: 215 20% 90%;
+    --sidebar-ring: 205 85% 45%;
 
     /* ===== Glass Effects ===== */
-    --glass-bg: 0 0% 100% / 0.85;
-    --glass-border: 0 0% 100% / 0.2;
-    --glass-blur: 20px;
+    --glass-bg: 0 0% 100% / 0.9;
+    --glass-border: 215 20% 90% / 0.5;
+    --glass-blur: 16px;
   }
 
   .dark {
-    /* ===== Base Theme - Dark (Professional Weather) ===== */
-    --background: 220 25% 8%;
-    --foreground: 220 20% 95%;
+    /* ===== Base Theme - Dark (Meteorological) ===== */
+    --background: 220 30% 6%;
+    --foreground: 215 20% 95%;
 
-    --card: 220 20% 12%;
-    --card-foreground: 220 20% 95%;
+    --card: 220 25% 10%;
+    --card-foreground: 215 20% 95%;
 
-    --popover: 220 20% 12%;
-    --popover-foreground: 220 20% 95%;
+    --popover: 220 25% 10%;
+    --popover-foreground: 215 20% 95%;
 
-    --primary: 215 70% 50%;
-    --primary-foreground: 0 0% 98%;
-    --primary-light: 215 65% 60%;
+    --primary: 205 80% 55%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 205 75% 65%;
 
-    --secondary: 220 20% 16%;
-    --secondary-foreground: 220 20% 95%;
+    --secondary: 220 25% 14%;
+    --secondary-foreground: 215 20% 95%;
 
-    --muted: 220 20% 16%;
-    --muted-foreground: 220 15% 55%;
+    --muted: 220 25% 14%;
+    --muted-foreground: 215 15% 55%;
 
-    --accent: 145 55% 50%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 152 65% 50%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 70% 55%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 20%;
-    --input: 220 20% 20%;
-    --ring: 215 70% 50%;
+    --border: 220 25% 18%;
+    --input: 220 25% 18%;
+    --ring: 205 80% 55%;
 
     /* ===== Sidebar Dark ===== */
-    --sidebar-background: 220 25% 10%;
-    --sidebar-foreground: 220 20% 95%;
-    --sidebar-primary: 215 70% 50%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 220 20% 16%;
-    --sidebar-accent-foreground: 220 20% 95%;
-    --sidebar-border: 220 20% 20%;
-    --sidebar-ring: 215 70% 50%;
+    --sidebar-background: 220 30% 8%;
+    --sidebar-foreground: 215 20% 95%;
+    --sidebar-primary: 205 80% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 25% 14%;
+    --sidebar-accent-foreground: 215 20% 95%;
+    --sidebar-border: 220 25% 16%;
+    --sidebar-ring: 205 80% 55%;
 
     /* ===== Glass Effects Dark ===== */
-    --glass-bg: 220 25% 12% / 0.9;
-    --glass-border: 220 20% 25% / 0.3;
+    --glass-bg: 220 30% 10% / 0.9;
+    --glass-border: 220 25% 20% / 0.5;
   }
 }
 
@@ -202,51 +198,62 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Cairo', 'Tajawal', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Cairo', 'Tajawal', -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
-  /* RTL Support - True Arabic Design */
+  /* RTL Support */
   [dir="rtl"] {
     direction: rtl;
     text-align: right;
   }
 
-  /* Custom scrollbar */
+  /* Professional Scrollbar */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
   }
 
   ::-webkit-scrollbar-track {
-    background: transparent;
+    background: hsl(var(--muted) / 0.3);
+    border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted-foreground) / 0.2);
-    border-radius: 3px;
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 4px;
+    transition: background 0.2s;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground) / 0.4);
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+
+  /* Monospace for data */
+  .font-mono {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
   }
 }
 
 @layer components {
-  /* ===== Glass Card ===== */
+  /* ===== Glass Card (Windy Style) ===== */
   .glass-card {
     background: hsl(var(--glass-bg));
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid hsl(var(--glass-border));
     border-radius: var(--radius);
+    box-shadow: 0 4px 24px hsl(var(--foreground) / 0.05);
   }
 
-  /* ===== Glass Effect (Legacy Support) ===== */
-  .glass-effect {
-    background: hsl(var(--card) / 0.85);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid hsl(var(--border) / 0.5);
+  .glass-card-elevated {
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--glass-border));
+    border-radius: var(--radius);
+    box-shadow: 
+      0 8px 32px hsl(var(--foreground) / 0.08),
+      0 2px 8px hsl(var(--foreground) / 0.04);
   }
 
   /* ===== Map Container ===== */
@@ -256,77 +263,126 @@
     z-index: 1;
   }
 
-  /* ===== Sidebar Styles ===== */
-  .sidebar-collapsed {
-    width: 60px;
+  /* ===== Professional Sidebar ===== */
+  .weather-sidebar {
+    background: hsl(var(--sidebar-background));
+    border-left: 1px solid hsl(var(--sidebar-border));
+    box-shadow: -4px 0 24px hsl(var(--foreground) / 0.03);
   }
 
-  .sidebar-expanded {
-    width: 320px;
+  .weather-sidebar-collapsed {
+    width: 64px;
+  }
+
+  .weather-sidebar-expanded {
+    width: 300px;
   }
 
   /* ===== Weather Card Styles ===== */
   .weather-card {
-    @apply glass-card p-4 transition-all duration-300;
+    @apply glass-card p-4 transition-all duration-200;
   }
 
   .weather-card:hover {
-    @apply shadow-lg;
-    transform: translateY(-2px);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 28px hsl(var(--foreground) / 0.08);
   }
 
-  /* ===== Compact Header ===== */
+  /* ===== Compact Header (Windy Style) ===== */
   .compact-header {
-    height: 48px;
-    @apply glass-effect fixed top-0 left-0 right-0 z-50;
+    height: 52px;
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid hsl(var(--border) / 0.5);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+  }
+
+  /* ===== Data Badge (Meteoblue Style) ===== */
+  .data-badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded;
+    background: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
+    border: 1px solid hsl(var(--primary) / 0.2);
+  }
+
+  .data-badge-success {
+    background: hsl(var(--accent) / 0.1);
+    color: hsl(var(--accent));
+    border: 1px solid hsl(var(--accent) / 0.2);
+  }
+
+  .data-badge-warning {
+    background: hsl(var(--alert-warning) / 0.1);
+    color: hsl(var(--alert-warning));
+    border: 1px solid hsl(var(--alert-warning) / 0.2);
+  }
+
+  .data-badge-danger {
+    background: hsl(var(--destructive) / 0.1);
+    color: hsl(var(--destructive));
+    border: 1px solid hsl(var(--destructive) / 0.2);
+  }
+
+  /* ===== Stat Card ===== */
+  .stat-card {
+    @apply p-4 rounded-lg border transition-all duration-200;
+    background: hsl(var(--card));
+  }
+
+  .stat-card:hover {
+    border-color: hsl(var(--primary) / 0.3);
+    box-shadow: 0 2px 12px hsl(var(--primary) / 0.1);
   }
 }
 
 @layer utilities {
-  /* ===== Palestinian Gradients ===== */
-  .text-gradient-palestine {
-    background: linear-gradient(135deg, hsl(var(--palestine-green)), hsl(var(--palestine-red)));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+  /* ===== Temperature Colors ===== */
+  .text-temp-freezing { color: hsl(var(--temp-freezing)); }
+  .text-temp-cold { color: hsl(var(--temp-cold)); }
+  .text-temp-cool { color: hsl(var(--temp-cool)); }
+  .text-temp-mild { color: hsl(var(--temp-mild)); }
+  .text-temp-warm { color: hsl(var(--temp-warm)); }
+  .text-temp-hot { color: hsl(var(--temp-hot)); }
+  .text-temp-extreme { color: hsl(var(--temp-extreme)); }
 
-  .bg-gradient-palestine {
-    background: linear-gradient(135deg, hsl(var(--palestine-green)), hsl(var(--primary)));
-  }
+  .bg-temp-freezing { background-color: hsl(var(--temp-freezing)); }
+  .bg-temp-cold { background-color: hsl(var(--temp-cold)); }
+  .bg-temp-cool { background-color: hsl(var(--temp-cool)); }
+  .bg-temp-mild { background-color: hsl(var(--temp-mild)); }
+  .bg-temp-warm { background-color: hsl(var(--temp-warm)); }
+  .bg-temp-hot { background-color: hsl(var(--temp-hot)); }
+  .bg-temp-extreme { background-color: hsl(var(--temp-extreme)); }
 
-  /* ===== Weather Shadows ===== */
-  .shadow-weather {
-    box-shadow: 0 4px 24px -4px hsl(var(--primary) / 0.15);
-  }
+  /* ===== Weather Colors ===== */
+  .text-weather-sunny { color: hsl(var(--weather-sunny)); }
+  .text-weather-cloudy { color: hsl(var(--weather-cloudy)); }
+  .text-weather-rainy { color: hsl(var(--weather-rainy)); }
+  .text-weather-stormy { color: hsl(var(--weather-stormy)); }
 
-  .shadow-weather-lg {
-    box-shadow: 0 8px 32px -8px hsl(var(--primary) / 0.2);
-  }
+  .bg-weather-sunny { background-color: hsl(var(--weather-sunny)); }
+  .bg-weather-cloudy { background-color: hsl(var(--weather-cloudy)); }
+  .bg-weather-rainy { background-color: hsl(var(--weather-rainy)); }
+  .bg-weather-stormy { background-color: hsl(var(--weather-stormy)); }
 
-  /* ===== Card Interactions ===== */
-  .card-hover {
-    @apply transition-all duration-300 hover:shadow-lg hover:border-primary/30;
-  }
+  /* ===== Alert Colors ===== */
+  .text-alert-safe { color: hsl(var(--alert-safe)); }
+  .text-alert-warning { color: hsl(var(--alert-warning)); }
+  .text-alert-danger { color: hsl(var(--alert-danger)); }
 
-  .card-interactive {
-    @apply transition-all duration-200 cursor-pointer;
-  }
-
-  .card-interactive:hover {
-    @apply shadow-md;
-    transform: translateY(-1px);
-  }
-
-  .card-interactive:active {
-    transform: translateY(0);
-  }
+  .bg-alert-safe { background-color: hsl(var(--alert-safe)); }
+  .bg-alert-warning { background-color: hsl(var(--alert-warning)); }
+  .bg-alert-danger { background-color: hsl(var(--alert-danger)); }
 
   /* ===== Animations ===== */
   @keyframes slide-up {
     from {
       opacity: 0;
-      transform: translateY(10px);
+      transform: translateY(8px);
     }
     to {
       opacity: 1;
@@ -337,7 +393,7 @@
   @keyframes slide-in-right {
     from {
       opacity: 0;
-      transform: translateX(20px);
+      transform: translateX(16px);
     }
     to {
       opacity: 1;
@@ -352,29 +408,35 @@
 
   @keyframes pulse-soft {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
+    50% { opacity: 0.6; }
   }
 
   @keyframes float {
     0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-6px); }
+    50% { transform: translateY(-4px); }
   }
 
-  @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes data-pulse {
+    0% { box-shadow: 0 0 0 0 hsl(var(--accent) / 0.4); }
+    70% { box-shadow: 0 0 0 6px hsl(var(--accent) / 0); }
+    100% { box-shadow: 0 0 0 0 hsl(var(--accent) / 0); }
   }
 
   .animate-slide-up {
-    animation: slide-up 0.4s ease-out;
+    animation: slide-up 0.3s ease-out;
   }
 
   .animate-slide-in-right {
-    animation: slide-in-right 0.3s ease-out;
+    animation: slide-in-right 0.25s ease-out;
   }
 
   .animate-fade-in {
-    animation: fade-in 0.3s ease-out;
+    animation: fade-in 0.25s ease-out;
   }
 
   .animate-pulse-soft {
@@ -385,10 +447,12 @@
     animation: float 3s ease-in-out infinite;
   }
 
-  .animate-shimmer {
-    background: linear-gradient(90deg, transparent 0%, hsl(var(--primary) / 0.1) 50%, transparent 100%);
-    background-size: 200% 100%;
-    animation: shimmer 2s infinite;
+  .animate-spin-slow {
+    animation: spin-slow 3s linear infinite;
+  }
+
+  .animate-data-pulse {
+    animation: data-pulse 2s infinite;
   }
 
   /* ===== Map Overlay Positioning ===== */
@@ -420,30 +484,6 @@
     z-index: 1000;
   }
 
-  /* ===== RTL Utilities ===== */
-  .rtl-flip {
-    transform: scaleX(-1);
-  }
-
-  [dir="rtl"] .rtl-space-reverse {
-    flex-direction: row-reverse;
-  }
-
-  /* ===== Temperature Colors ===== */
-  .temp-hot { color: hsl(var(--temp-hot)); }
-  .temp-warm { color: hsl(var(--temp-warm)); }
-  .temp-mild { color: hsl(var(--temp-mild)); }
-  .temp-cool { color: hsl(var(--temp-cool)); }
-  .temp-cold { color: hsl(var(--temp-cold)); }
-  .temp-freezing { color: hsl(var(--temp-freezing)); }
-
-  .bg-temp-hot { background-color: hsl(var(--temp-hot)); }
-  .bg-temp-warm { background-color: hsl(var(--temp-warm)); }
-  .bg-temp-mild { background-color: hsl(var(--temp-mild)); }
-  .bg-temp-cool { background-color: hsl(var(--temp-cool)); }
-  .bg-temp-cold { background-color: hsl(var(--temp-cold)); }
-  .bg-temp-freezing { background-color: hsl(var(--temp-freezing)); }
-
   /* ===== Hide Scrollbar Utility ===== */
   .hide-scrollbar {
     -ms-overflow-style: none;
@@ -452,5 +492,33 @@
 
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
+  }
+
+  /* ===== Gradient Text ===== */
+  .text-gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-palestine {
+    background: linear-gradient(135deg, hsl(var(--palestine-green)), hsl(var(--palestine-red)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ===== Professional Data Display ===== */
+  .data-value {
+    @apply font-semibold tabular-nums tracking-tight;
+  }
+
+  .data-label {
+    @apply text-xs text-muted-foreground font-medium;
+  }
+
+  .data-unit {
+    @apply text-xs text-muted-foreground mr-0.5;
   }
 }

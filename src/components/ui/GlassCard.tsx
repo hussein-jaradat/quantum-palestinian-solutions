@@ -11,8 +11,8 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
   ({ className, variant = "default", padding = "md", interactive = false, children, ...props }, ref) => {
     const variants = {
       default: "glass-card",
-      elevated: "glass-card shadow-weather",
-      subtle: "bg-card/50 backdrop-blur-sm border border-border/30 rounded-xl",
+      elevated: "glass-card-elevated",
+      subtle: "bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg",
     };
 
     const paddings = {
@@ -28,7 +28,7 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
         className={cn(
           variants[variant],
           paddings[padding],
-          interactive && "card-interactive",
+          interactive && "weather-card",
           className
         )}
         {...props}

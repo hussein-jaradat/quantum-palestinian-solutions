@@ -9,20 +9,19 @@ import {
   Brain, 
   Atom,
   BarChart3,
-  Droplets,
+  Calendar,
   AlertTriangle,
   Leaf,
   Target,
-  ChevronDown,
-  ChevronUp
+  Thermometer,
+  Droplets,
+  Compass
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { GlassCard } from '@/components/ui/GlassCard';
-import { WeatherIcon } from '@/components/ui/WeatherIcon';
 import { cn } from '@/lib/utils';
-import { Governorate, WeatherData } from '@/types/weather';
+import { Governorate, WeatherData, WeatherCondition } from '@/types/weather';
 import { GOVERNORATES } from '@/data/weatherData';
 import {
   Select,
@@ -31,11 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { WeatherIcon } from '@/components/ui/WeatherIcon';
 
 interface WeatherSidebarProps {
   isOpen: boolean;
@@ -48,17 +43,17 @@ interface WeatherSidebarProps {
 }
 
 const navigationItems = [
-  { id: 'overview', label: 'الخريطة', icon: MapPin },
-  { id: 'wind', label: 'الرياح', icon: Wind },
-  { id: 'radar', label: 'الرادار', icon: CloudRain },
-  { id: 'qanwp-ai', label: 'QANWP-AI', icon: Brain, badge: 'AI' },
-  { id: 'satellite', label: 'الأقمار', icon: Satellite },
-  { id: 'historical', label: 'التاريخي', icon: BarChart3 },
-  { id: 'forecast', label: 'التنبؤات', icon: Droplets },
-  { id: 'agriculture', label: 'الزراعة', icon: Leaf },
-  { id: 'floods', label: 'السيول', icon: AlertTriangle },
-  { id: 'quantum', label: 'الكوانتوم', icon: Atom },
-  { id: 'sdgs', label: 'SDGs', icon: Target },
+  { id: 'overview', label: 'الخريطة', icon: MapPin, color: 'text-primary' },
+  { id: 'wind', label: 'الرياح', icon: Wind, color: 'text-sky-500' },
+  { id: 'radar', label: 'الرادار', icon: CloudRain, color: 'text-blue-500' },
+  { id: 'qanwp-ai', label: 'QANWP-AI', icon: Brain, color: 'text-purple-500', badge: 'AI' },
+  { id: 'satellite', label: 'الأقمار', icon: Satellite, color: 'text-indigo-500' },
+  { id: 'historical', label: 'التاريخي', icon: BarChart3, color: 'text-amber-500' },
+  { id: 'forecast', label: 'التنبؤات', icon: Calendar, color: 'text-green-500' },
+  { id: 'agriculture', label: 'الزراعة', icon: Leaf, color: 'text-emerald-500' },
+  { id: 'floods', label: 'السيول', icon: AlertTriangle, color: 'text-red-500' },
+  { id: 'quantum', label: 'الكوانتوم', icon: Atom, color: 'text-violet-500' },
+  { id: 'sdgs', label: 'SDGs', icon: Target, color: 'text-teal-500' },
 ];
 
 const WeatherSidebar = ({
@@ -70,58 +65,65 @@ const WeatherSidebar = ({
   activeSection,
   onNavigate,
 }: WeatherSidebarProps) => {
-  const [isWeatherExpanded, setIsWeatherExpanded] = useState(true);
-  const [isForecastExpanded, setIsForecastExpanded] = useState(false);
 
   const handleGovernorateChange = (value: string) => {
     const gov = GOVERNORATES.find(g => g.id === value);
     if (gov) onGovernorateSelect(gov);
   };
 
+  const getTemperatureColor = (temp: number) => {
+    if (temp <= 5) return 'text-temp-freezing';
+    if (temp <= 10) return 'text-temp-cold';
+    if (temp <= 15) return 'text-temp-cool';
+    if (temp <= 22) return 'text-temp-mild';
+    if (temp <= 30) return 'text-temp-warm';
+    if (temp <= 38) return 'text-temp-hot';
+    return 'text-temp-extreme';
+  };
+
   return (
     <aside
       className={cn(
-        "fixed top-[48px] right-0 h-[calc(100vh-48px)] z-40 transition-all duration-300 ease-out",
-        "bg-sidebar border-l border-sidebar-border",
-        isOpen ? "w-[320px]" : "w-[60px]"
+        "weather-sidebar fixed top-[52px] right-0 h-[calc(100vh-52px)] z-40 transition-all duration-300 ease-out",
+        isOpen ? "weather-sidebar-expanded" : "weather-sidebar-collapsed"
       )}
     >
       {/* Toggle Button */}
       <Button
-        variant="ghost"
+        variant="outline"
         size="icon"
         onClick={onToggle}
-        className="absolute -left-3 top-4 h-6 w-6 rounded-full bg-sidebar border border-sidebar-border shadow-sm z-50"
+        className="absolute -left-4 top-6 h-8 w-8 rounded-full bg-background border shadow-md z-50 hover:bg-primary hover:text-white"
       >
-        {isOpen ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+        {isOpen ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
       </Button>
 
       <ScrollArea className="h-full">
-        <div className={cn("p-3 space-y-3", !isOpen && "px-2")}>
+        <div className={cn("p-3 space-y-4", !isOpen && "px-2")}>
           {/* Location Selector */}
           {isOpen && (
             <div className="animate-fade-in">
               <Select value={selectedGovernorate.id} onValueChange={handleGovernorateChange}>
-                <SelectTrigger className="w-full h-10 bg-sidebar-accent/50 border-sidebar-border">
+                <SelectTrigger className="w-full h-11 bg-card border-border hover:border-primary/50 transition-colors">
                   <div className="flex items-center gap-2">
-                    <MapPin size={14} className="text-primary" />
+                    <MapPin size={16} className="text-primary" />
                     <SelectValue placeholder="اختر المحافظة" />
                   </div>
                 </SelectTrigger>
                 <SelectContent>
-                  <div className="text-xs text-muted-foreground px-2 py-1">شمال الضفة</div>
+                  <div className="text-xs text-muted-foreground px-2 py-1.5 font-medium">شمال الضفة</div>
                   {GOVERNORATES.filter(g => g.region === 'north').map(gov => (
                     <SelectItem key={gov.id} value={gov.id}>{gov.nameAr}</SelectItem>
                   ))}
-                  <div className="text-xs text-muted-foreground px-2 py-1 mt-1">وسط الضفة</div>
+                  <div className="text-xs text-muted-foreground px-2 py-1.5 font-medium mt-1">وسط الضفة</div>
                   {GOVERNORATES.filter(g => g.region === 'center').map(gov => (
                     <SelectItem key={gov.id} value={gov.id}>{gov.nameAr}</SelectItem>
                   ))}
-                  <div className="text-xs text-muted-foreground px-2 py-1 mt-1">جنوب الضفة</div>
+                  <div className="text-xs text-muted-foreground px-2 py-1.5 font-medium mt-1">جنوب الضفة</div>
                   {GOVERNORATES.filter(g => g.region === 'south').map(gov => (
                     <SelectItem key={gov.id} value={gov.id}>{gov.nameAr}</SelectItem>
                   ))}
-                  <div className="text-xs text-muted-foreground px-2 py-1 mt-1">قطاع غزة</div>
+                  <div className="text-xs text-muted-foreground px-2 py-1.5 font-medium mt-1">قطاع غزة</div>
                   {GOVERNORATES.filter(g => g.region === 'gaza').map(gov => (
                     <SelectItem key={gov.id} value={gov.id}>{gov.nameAr}</SelectItem>
                   ))}
@@ -130,84 +132,94 @@ const WeatherSidebar = ({
             </div>
           )}
 
-          {/* Compact Location (Collapsed State) */}
+          {/* Compact Location Icon (Collapsed State) */}
           {!isOpen && (
-            <div className="flex justify-center">
-              <Button variant="ghost" size="icon" className="h-10 w-10">
-                <MapPin size={18} className="text-primary" />
+            <div className="flex justify-center py-2">
+              <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-primary/10">
+                <MapPin size={20} className="text-primary" />
               </Button>
             </div>
           )}
 
           {/* Current Weather Card */}
-          <Collapsible open={isWeatherExpanded} onOpenChange={setIsWeatherExpanded}>
-            <GlassCard variant="elevated" padding={isOpen ? "md" : "sm"} className="animate-slide-up">
-              {isOpen ? (
-                <>
-                  <CollapsibleTrigger className="w-full">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="bg-alert-safe/10 text-alert-safe border-alert-safe/30 text-xs">
-                          الآن
-                        </Badge>
-                        <span className="text-sm font-medium">{selectedGovernorate.nameAr}</span>
-                      </div>
-                      {isWeatherExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          <div className={cn(
+            "glass-card-elevated p-4 animate-slide-up",
+            !isOpen && "p-2"
+          )}>
+            {isOpen ? (
+              weather ? (
+                <div className="space-y-4">
+                  {/* Header */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="data-badge-success text-[10px] px-1.5 py-0">
+                        الآن
+                      </Badge>
+                      <span className="text-sm font-semibold">{selectedGovernorate.nameAr}</span>
                     </div>
-                  </CollapsibleTrigger>
+                  </div>
 
-                  <CollapsibleContent>
-                    {weather ? (
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-4xl font-bold">{weather.temperature}°</div>
-                            <div className="text-sm text-muted-foreground">
-                              {weather.temperatureMax}° / {weather.temperatureMin}°
-                            </div>
-                          </div>
-                          <WeatherIcon condition={weather.condition} size="xl" animated />
-                        </div>
+                  {/* Main Weather Display */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className={cn("text-5xl font-bold tracking-tight", getTemperatureColor(weather.temperature))}>
+                        {weather.temperature}°
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        <span className="text-temp-hot">{weather.temperatureMax}°</span>
+                        <span className="mx-1">/</span>
+                        <span className="text-temp-cold">{weather.temperatureMin}°</span>
+                      </div>
+                    </div>
+                    <WeatherIcon 
+                      condition={weather.condition as WeatherCondition} 
+                      size="xl" 
+                      animated 
+                    />
+                  </div>
 
-                        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/50">
-                          <div className="text-center">
-                            <div className="text-xs text-muted-foreground">💧 الرطوبة</div>
-                            <div className="text-sm font-medium">{weather.humidity}%</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-xs text-muted-foreground">💨 الرياح</div>
-                            <div className="text-sm font-medium">{weather.windSpeed}</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-xs text-muted-foreground">🌧️ أمطار</div>
-                            <div className="text-sm font-medium">{weather.precipitation}mm</div>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="h-20 flex items-center justify-center">
-                        <div className="animate-pulse-soft text-muted-foreground">جاري التحميل...</div>
-                      </div>
-                    )}
-                  </CollapsibleContent>
-                </>
-              ) : (
-                <div className="flex flex-col items-center gap-1">
-                  {weather && (
-                    <>
-                      <WeatherIcon condition={weather.condition} size="lg" />
-                      <div className="text-lg font-bold">{weather.temperature}°</div>
-                    </>
-                  )}
+                  {/* Weather Stats Grid */}
+                  <div className="grid grid-cols-3 gap-2 pt-3 border-t border-border">
+                    <div className="text-center p-2 rounded-lg bg-secondary/30">
+                      <Droplets size={14} className="mx-auto mb-1 text-blue-500" />
+                      <div className="text-xs text-muted-foreground">رطوبة</div>
+                      <div className="text-sm font-semibold">{weather.humidity}%</div>
+                    </div>
+                    <div className="text-center p-2 rounded-lg bg-secondary/30">
+                      <Wind size={14} className="mx-auto mb-1 text-sky-500" />
+                      <div className="text-xs text-muted-foreground">رياح</div>
+                      <div className="text-sm font-semibold">{weather.windSpeed}</div>
+                    </div>
+                    <div className="text-center p-2 rounded-lg bg-secondary/30">
+                      <CloudRain size={14} className="mx-auto mb-1 text-indigo-500" />
+                      <div className="text-xs text-muted-foreground">أمطار</div>
+                      <div className="text-sm font-semibold">{weather.precipitation}mm</div>
+                    </div>
+                  </div>
                 </div>
-              )}
-            </GlassCard>
-          </Collapsible>
+              ) : (
+                <div className="h-32 flex items-center justify-center">
+                  <div className="animate-pulse-soft text-muted-foreground text-sm">جاري التحميل...</div>
+                </div>
+              )
+            ) : (
+              <div className="flex flex-col items-center gap-2 py-2">
+                {weather && (
+                  <>
+                    <WeatherIcon condition={weather.condition as WeatherCondition} size="lg" />
+                    <div className={cn("text-xl font-bold", getTemperatureColor(weather.temperature))}>
+                      {weather.temperature}°
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Navigation Items */}
           <div className="space-y-1">
             {isOpen && (
-              <div className="text-xs text-muted-foreground px-2 mb-2">التنقل السريع</div>
+              <div className="text-xs text-muted-foreground px-2 py-2 font-medium">القوائم</div>
             )}
             {navigationItems.map((item) => {
               const Icon = item.icon;
@@ -216,24 +228,28 @@ const WeatherSidebar = ({
               return (
                 <Button
                   key={item.id}
-                  variant={isActive ? "secondary" : "ghost"}
+                  variant={isActive ? "default" : "ghost"}
                   className={cn(
-                    "w-full justify-start gap-2 h-9",
-                    isActive && "bg-primary/10 text-primary border border-primary/20",
+                    "w-full justify-start gap-3 h-10 transition-all",
+                    isActive && "bg-primary text-primary-foreground shadow-sm",
+                    !isActive && "hover:bg-secondary",
                     !isOpen && "justify-center px-0"
                   )}
                   onClick={() => onNavigate(item.id)}
                 >
-                  <Icon size={16} className={isActive ? "text-primary" : ""} />
+                  <Icon size={18} className={isActive ? "" : item.color} />
                   {isOpen && (
-                    <>
+                    <div className="flex items-center justify-between flex-1">
                       <span className="text-sm">{item.label}</span>
                       {item.badge && (
-                        <Badge variant="outline" className="mr-auto text-[10px] h-4 px-1">
+                        <Badge 
+                          variant={isActive ? "secondary" : "outline"} 
+                          className="text-[10px] h-5 px-1.5"
+                        >
                           {item.badge}
                         </Badge>
                       )}
-                    </>
+                    </div>
                   )}
                 </Button>
               );
@@ -242,12 +258,15 @@ const WeatherSidebar = ({
 
           {/* Active Alerts */}
           {isOpen && (
-            <GlassCard variant="subtle" padding="sm" className="animate-slide-up">
-              <div className="flex items-center gap-2 text-alert-warning">
-                <AlertTriangle size={14} />
-                <span className="text-xs font-medium">تنبيهان نشطان</span>
+            <div className="glass-card p-3 animate-slide-up border-destructive/30">
+              <div className="flex items-center gap-2 text-destructive">
+                <AlertTriangle size={16} className="animate-pulse" />
+                <span className="text-sm font-medium">تنبيهان نشطان</span>
               </div>
-            </GlassCard>
+              <p className="text-xs text-muted-foreground mt-1">
+                اضغط للاطلاع على التفاصيل
+              </p>
+            </div>
           )}
         </div>
       </ScrollArea>
