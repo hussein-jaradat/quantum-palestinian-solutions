@@ -1,248 +1,118 @@
-import { useState, lazy, Suspense } from 'react';
-import AppLayout from '@/components/layout/AppLayout';
-import FullscreenMap from '@/components/map/FullscreenMap';
-import WeatherNowCard from '@/components/weather/WeatherNowCard';
-import HourlyScroller from '@/components/weather/HourlyScroller';
-import WeekForecastCompact from '@/components/weather/WeekForecastCompact';
-import { GlassCard } from '@/components/ui/GlassCard';
+import { useState } from 'react';
 import { GOVERNORATES } from '@/data/weatherData';
 import { Governorate } from '@/types/weather';
 import { useGovernorateWeather } from '@/hooks/useWeather';
-import { Loader2 } from 'lucide-react';
-
-// Lazy load heavy components
-const QANWPAIPanel = lazy(() => import('@/components/QANWPAIPanel'));
-const HistoricalAnalysis = lazy(() => import('@/components/HistoricalAnalysis'));
-const SatelliteImageryViewer = lazy(() => import('@/components/SatelliteImageryViewer'));
-const WindFlowLayer = lazy(() => import('@/components/WindFlowLayer'));
-const RainfallRadarLayer = lazy(() => import('@/components/RainfallRadarLayer'));
-const SDGsWidget = lazy(() => import('@/components/SDGsWidget'));
-const QuantumWeatherSimulator = lazy(() => import('@/components/QuantumWeatherSimulator'));
-const QuantumBlochSphere = lazy(() => import('@/components/QuantumBlochSphere'));
-const QuantumSpeedupDemo = lazy(() => import('@/components/QuantumSpeedupDemo'));
-const NowcastingPanel = lazy(() => import('@/components/NowcastingPanel'));
-const EnsembleForecast = lazy(() => import('@/components/EnsembleForecast'));
-const ValidationDashboard = lazy(() => import('@/components/ValidationDashboard'));
-const WeatherTimeline = lazy(() => import('@/components/WeatherTimeline'));
-const WeeklyForecastDetailed = lazy(() => import('@/components/WeeklyForecastDetailed'));
-const MonthlyForecast = lazy(() => import('@/components/MonthlyForecast'));
-const AgriculturalForecast = lazy(() => import('@/components/AgriculturalForecast'));
-const FloodRiskSystem = lazy(() => import('@/components/FloodRiskSystem'));
-
-// Loading fallback component
-const LoadingFallback = () => (
-  <GlassCard variant="subtle" className="h-64 flex items-center justify-center">
-    <div className="text-center space-y-3">
-      <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-      <p className="text-muted-foreground text-sm">جاري التحميل...</p>
-    </div>
-  </GlassCard>
-);
+import { MapPin, Wind, CloudRain, Droplets, ThermometerSun } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import FullscreenMap from '@/components/map/FullscreenMap';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Index = () => {
   const defaultGovernorate = GOVERNORATES.find((g) => g.id === 'ramallah')!;
   const [selectedGovernorate, setSelectedGovernorate] = useState<Governorate>(defaultGovernorate);
-  const [activeSection, setActiveSection] = useState('overview');
 
   const { data, isLoading } = useGovernorateWeather(selectedGovernorate.id);
+  const weather = data?.weather;
 
-  const handleGovernorateSelect = (governorate: Governorate) => {
-    setSelectedGovernorate(governorate);
-  };
-
-  const handleNavigate = (section: string) => {
-    setActiveSection(section);
-  };
-
-  const renderContent = () => {
-    switch (activeSection) {
-      case 'overview':
-        return (
-          <div className="relative h-full">
-            <FullscreenMap
-              onGovernorateSelect={handleGovernorateSelect}
-              selectedGovernorateId={selectedGovernorate.id}
-            />
-            
-            {/* Floating Weather Card */}
-            <div className="absolute bottom-4 left-4 right-4 md:right-auto md:w-[360px] z-[1000]">
-              <div className="space-y-3">
-                <WeatherNowCard
-                  weather={data?.weather || null}
-                  cityName={selectedGovernorate.nameAr}
-                  isLoading={isLoading}
-                  compact
-                />
-                <HourlyScroller hourlyData={data?.hourly || []} />
-              </div>
-            </div>
-          </div>
-        );
-
-      case 'wind':
-        return (
-          <div className="p-4 space-y-4 animate-fade-in">
-            <WeatherNowCard
-              weather={data?.weather || null}
-              cityName={selectedGovernorate.nameAr}
-              isLoading={isLoading}
-            />
-            <Suspense fallback={<LoadingFallback />}>
-              <WindFlowLayer governorateId={selectedGovernorate.id} />
-            </Suspense>
-          </div>
-        );
-
-      case 'radar':
-        return (
-          <div className="p-4 space-y-4 animate-fade-in">
-            <Suspense fallback={<LoadingFallback />}>
-              <RainfallRadarLayer />
-            </Suspense>
-          </div>
-        );
-
-      case 'qanwp-ai':
-        return (
-          <div className="p-4 space-y-4 animate-fade-in">
-            <Suspense fallback={<LoadingFallback />}>
-              <WeatherTimeline hoursRange={24} />
-              <NowcastingPanel
-                governorateId={selectedGovernorate.id}
-                governorateName={selectedGovernorate.nameAr}
-              />
-              <EnsembleForecast governorateId={selectedGovernorate.id} />
-              <QANWPAIPanel
-                governorateId={selectedGovernorate.id}
-                governorateName={selectedGovernorate.nameAr}
-                currentWeather={data?.weather || null}
-              />
-              <ValidationDashboard />
-            </Suspense>
-          </div>
-        );
-
-      case 'satellite':
-        return (
-          <div className="p-4 animate-fade-in">
-            <Suspense fallback={<LoadingFallback />}>
-              <SatelliteImageryViewer />
-            </Suspense>
-          </div>
-        );
-
-      case 'historical':
-        return (
-          <div className="p-4 animate-fade-in">
-            <Suspense fallback={<LoadingFallback />}>
-              <HistoricalAnalysis
-                governorateId={selectedGovernorate.id}
-                governorateName={selectedGovernorate.nameAr}
-              />
-            </Suspense>
-          </div>
-        );
-
-      case 'forecast':
-        return (
-          <div className="p-4 space-y-4 animate-fade-in">
-            <WeatherNowCard
-              weather={data?.weather || null}
-              cityName={selectedGovernorate.nameAr}
-              isLoading={isLoading}
-            />
-            <HourlyScroller hourlyData={data?.hourly || []} />
-            <WeekForecastCompact dailyData={data?.daily || []} />
-            <Suspense fallback={<LoadingFallback />}>
-              <WeeklyForecastDetailed
-                dailyData={data?.daily || []}
-                governorateName={selectedGovernorate.nameAr}
-              />
-              <MonthlyForecast
-                dailyData={data?.daily || []}
-                governorateName={selectedGovernorate.nameAr}
-              />
-            </Suspense>
-          </div>
-        );
-
-      case 'agriculture':
-        return (
-          <div className="p-4 animate-fade-in">
-            <Suspense fallback={<LoadingFallback />}>
-              <AgriculturalForecast
-                weather={data?.weather || null}
-                dailyData={data?.daily || []}
-                governorateName={selectedGovernorate.nameAr}
-              />
-            </Suspense>
-          </div>
-        );
-
-      case 'floods':
-        return (
-          <div className="p-4 animate-fade-in">
-            <Suspense fallback={<LoadingFallback />}>
-              <FloodRiskSystem
-                weatherData={{}}
-                selectedGovernorateId={selectedGovernorate.id}
-                dailyData={data?.daily || []}
-              />
-            </Suspense>
-          </div>
-        );
-
-      case 'quantum':
-        return (
-          <div className="p-4 space-y-4 animate-fade-in">
-            <Suspense fallback={<LoadingFallback />}>
-              <QuantumWeatherSimulator 
-                governorateId={selectedGovernorate.id}
-                currentWeather={data?.weather ? {
-                  temperature: data.weather.temperature,
-                  humidity: data.weather.humidity,
-                  pressure: 1013,
-                } : undefined}
-              />
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <QuantumBlochSphere />
-                <QuantumSpeedupDemo />
-              </div>
-            </Suspense>
-          </div>
-        );
-
-      case 'sdgs':
-        return (
-          <div className="p-4 animate-fade-in">
-            <Suspense fallback={<LoadingFallback />}>
-              <SDGsWidget />
-            </Suspense>
-          </div>
-        );
-
-      default:
-        return (
-          <div className="relative h-full">
-            <FullscreenMap
-              onGovernorateSelect={handleGovernorateSelect}
-              selectedGovernorateId={selectedGovernorate.id}
-            />
-          </div>
-        );
-    }
+  const handleGovernorateChange = (value: string) => {
+    const gov = GOVERNORATES.find(g => g.id === value);
+    if (gov) setSelectedGovernorate(gov);
   };
 
   return (
-    <AppLayout
-      selectedGovernorate={selectedGovernorate}
-      onGovernorateSelect={handleGovernorateSelect}
-      weather={data?.weather || null}
-      activeSection={activeSection}
-      onNavigate={handleNavigate}
-    >
-      {renderContent()}
-    </AppLayout>
+    <div className="h-screen w-screen relative" dir="rtl">
+      {/* خريطة ملء الشاشة */}
+      <FullscreenMap
+        onGovernorateSelect={setSelectedGovernorate}
+        selectedGovernorateId={selectedGovernorate.id}
+      />
+
+      {/* بطاقة الطقس العائمة */}
+      <div className="absolute top-4 right-4 z-[1000] w-80">
+        <div className="glass-card-elevated p-4 space-y-4">
+          {/* اختيار المحافظة */}
+          <Select value={selectedGovernorate.id} onValueChange={handleGovernorateChange}>
+            <SelectTrigger className="w-full bg-background/80">
+              <div className="flex items-center gap-2">
+                <MapPin size={16} className="text-primary" />
+                <SelectValue />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              {GOVERNORATES.map(gov => (
+                <SelectItem key={gov.id} value={gov.id}>{gov.nameAr}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* بيانات الطقس */}
+          {isLoading ? (
+            <div className="h-24 flex items-center justify-center">
+              <div className="animate-pulse-soft text-muted-foreground">جاري التحميل...</div>
+            </div>
+          ) : weather ? (
+            <div className="space-y-4">
+              {/* درجة الحرارة الرئيسية */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-5xl font-bold text-primary">
+                    {weather.temperature}°
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {weather.temperatureMax}° / {weather.temperatureMin}°
+                  </div>
+                </div>
+                <ThermometerSun className="h-12 w-12 text-weather-sunny" />
+              </div>
+
+              {/* إحصائيات سريعة */}
+              <div className="grid grid-cols-3 gap-2">
+                <div className="text-center p-2 rounded-lg bg-secondary/50">
+                  <Droplets size={16} className="mx-auto mb-1 text-primary" />
+                  <div className="text-xs text-muted-foreground">رطوبة</div>
+                  <div className="font-semibold">{weather.humidity}%</div>
+                </div>
+                <div className="text-center p-2 rounded-lg bg-secondary/50">
+                  <Wind size={16} className="mx-auto mb-1 text-primary" />
+                  <div className="text-xs text-muted-foreground">رياح</div>
+                  <div className="font-semibold">{weather.windSpeed}</div>
+                </div>
+                <div className="text-center p-2 rounded-lg bg-secondary/50">
+                  <CloudRain size={16} className="mx-auto mb-1 text-primary" />
+                  <div className="text-xs text-muted-foreground">أمطار</div>
+                  <div className="font-semibold">{weather.precipitation}mm</div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      {/* توقعات الأيام القادمة */}
+      {data?.daily && data.daily.length > 0 && (
+        <div className="absolute bottom-4 left-4 right-4 z-[1000]">
+          <div className="glass-card-elevated p-3">
+            <div className="flex gap-3 overflow-x-auto hide-scrollbar">
+              {data.daily.slice(0, 7).map((day, idx) => (
+                <div key={idx} className="flex-shrink-0 text-center p-2 min-w-[70px] rounded-lg bg-secondary/30">
+                  <div className="text-xs text-muted-foreground mb-1">
+                    {new Date(day.date).toLocaleDateString('ar', { weekday: 'short' })}
+                  </div>
+                  <div className="font-bold text-primary">{day.temperatureMax}°</div>
+                  <div className="text-xs text-muted-foreground">{day.temperatureMin}°</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
